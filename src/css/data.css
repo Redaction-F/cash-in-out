@@ -1,0 +1,92 @@
+.option-buttons {
+  padding-bottom: 20px;
+  text-align: left;
+}
+
+.option-button {
+  width: 10%;
+  height: 5vh;
+  background-color: #cfcfcf;
+  border: solid 1px;
+  border-color: #2f2f2f;
+  color: #2f2f2f;
+}
+
+.option-button:disabled {
+  opacity: 0.3;
+  /* カーソルを非アクティブに */
+  cursor: not-allowed;
+}
+
+.option-button:hover:not(:disabled) {
+  background-color: #bfbfbf;
+}
+
+.option-button:active:not(:disabled) {
+  background-color: #dfdfdf;
+}
+
+.one-month-table {
+  width: 100%;
+  table-layout: fixed;
+  border-collapse: collapse;
+}
+
+.one-month-table td,th {
+  border: solid 1px;
+  /* テキスト左寄せ */
+  text-align: left;
+  /* テキストはみ出しは3点リーダー */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  /* テキスト折り返しなし */
+  white-space: nowrap;
+}
+
+.one-month-table thead :nth-child(1) {
+  width: 20px;
+}
+
+.one-month-table thead :nth-child(2) {
+  width: 60px;
+}
+
+.one-month-table thead :nth-child(3) {
+  width: 80px;
+}
+
+.one-month-table thead :nth-child(4) {
+  width: 80px;
+}
+
+.one-month-table thead :nth-child(5) {
+  width: 150px;
+}
+
+.one-month-table thead :nth-child(6) {
+  width: 80px;
+}
+
+.one-month-table tbody tr :nth-child(1) {
+  text-align: center;
+}
+
+.one-month-table tbody tr :nth-child(6) {
+  text-align: right;
+}
+
+@media (prefers-color-scheme: dark) {
+  .option-button {
+    background-color: #282828;
+    border-color: #efefef;
+    color: #efefef;
+  }
+
+  .option-button:hover:not(:disabled) {
+    background-color: #0f0f0f;
+  }
+
+  .option-button:active:not(:disabled) {
+    background-color: #3f3f3f;
+  }
+}

@@ -1,0 +1,65 @@
+.input-area {
+  margin: 2vh 1% 2vh 1%;
+  display: flex;
+}
+
+.input-label {
+  width: 20%;
+  display: block;
+  cursor: pointer;
+}
+
+.input-input {
+  border: 0px;
+  border-bottom: 1px solid #2f2f2f;
+  background-color: #cfcfcf;
+  padding: 0 1% 0 1%;
+  width: 80%;
+}
+
+.input-input:disabled {
+  background-color: #efefef;
+}
+
+.input-input[type="number"]::-webkit-inner-spin-button,
+.input-input[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+}
+
+.input-textarea {
+  border: 0px;
+  border-bottom: 1px solid #2f2f2f;
+  padding: 0 1% 0 1%;
+  background-color: #cfcfcf;
+  height: 15vh;
+  width: 80%;
+}
+
+.input-textarea:disabled {
+  background-color: #efefef;
+}
+
+.edit-buttons {
+  display: flex;
+}
+
+.edit-button {
+  border: 1px solid #2f2f2f;
+  height: 5vh;
+  width: 10%;
+  background-color: #cfcfcf;
+}
+
+.edit-button:disabled {
+  opacity: 0.3;
+  /* カーソルを非アクティブに */
+  cursor: not-allowed;
+}
+
+.edit-button:hover:not(:disabled) {
+  background-color: #bfbfbf;
+}
+
+.edit-button:active:not(:disabled) {
+  background-color: #dfdfdf;
+}
