@@ -8,18 +8,18 @@ pub enum Error {
 
 impl Error {
     // 自分で定義したメッセージからエラー型を作成
-    pub fn from_msg(kind: ErrorDiscriminants, msg: &str) -> Error {
+    pub fn from_msg(kind: ErrorKinds, msg: &str) -> Error {
         match kind {
-            ErrorDiscriminants::ReadCsvError => Error::ReadCsvError(format!("{}", msg))
+            ErrorKinds::ReadCsvError => Error::ReadCsvError(format!("{}", msg))
         }
     }
 
     // 自分で定義したメッセージ+エラーの原因からエラー型を作成
-    pub fn from_into_string<T>(kind: ErrorDiscriminants, msg: &str, into_string: T) -> Error
+    pub fn from_into_string<T>(kind: ErrorKinds, msg: &str, into_string: T) -> Error
         where
             T: Display {
         match kind {
-            ErrorDiscriminants::ReadCsvError => Error::ReadCsvError(format!("{} ({})", msg, into_string.to_string()))
+            ErrorKinds::ReadCsvError => Error::ReadCsvError(format!("{} ({})", msg, into_string.to_string()))
         }
     }
 }
@@ -56,6 +56,6 @@ impl Serialize for Error {
 }
 
 // エラー型(中身なし)
-pub enum ErrorDiscriminants {
+pub enum ErrorKinds {
     ReadCsvError
 }
