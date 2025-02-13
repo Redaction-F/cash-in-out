@@ -1,92 +1,129 @@
+/* オプションボタンのラッパー */
 .option-buttons {
-  padding-bottom: 20px;
-  text-align: left;
+  /* 子要素を横並びに配置 */
+  display: flex;
+  /* 内余白(下) */
+  padding-bottom: 5vh;
 }
 
+/* 各オプションボタン */
 .option-button {
-  width: 10%;
-  height: 5vh;
+  /* 背景色 */
   background-color: #cfcfcf;
-  border: solid 1px;
+  /* 枠線 */
+  border: 1px solid ;
+  /* 枠線の色 */
   border-color: #2f2f2f;
-  color: #2f2f2f;
+  /* 高さ */
+  height: 5vh;
+  /* 幅 */
+  width: 10%;
 }
 
-.option-button:disabled {
-  opacity: 0.3;
-  /* カーソルを非アクティブに */
-  cursor: not-allowed;
-}
-
-.option-button:hover:not(:disabled) {
+/* 各オプションボタン(ホバー時) */
+.option-button:hover {
+  /* 背景色 */
   background-color: #bfbfbf;
 }
 
-.option-button:active:not(:disabled) {
+/* 各オプションボタン(クリック時) */
+.option-button:active {
+  /* 背景色 */
   background-color: #dfdfdf;
 }
 
-.one-month-table {
-  width: 100%;
-  table-layout: fixed;
-  border-collapse: collapse;
+/* 各オプションボタン(非アクティブ時) */
+.option-button:disabled {
+  /* 背景色 */
+  background-color: #cfcfcf;
+  /* カーソルを非アクティブに */
+  cursor: not-allowed;
+  /* 透明度 */
+  opacity: 0.3;
 }
 
+/* 一か月分の表 */
+.one-month-table {
+  /* 隣り合うボーダーの枠線を重ねる */
+  border-collapse: collapse;
+  /* 各列で列幅を指定 */
+  table-layout: fixed;
+  /* 幅 */
+  width: 100%;
+}
+
+/* 先頭行以外のセル */
 .one-month-table td,th {
-  border: solid 1px;
+  /* 枠線 */
+  border: 1px solid;
+  /* はみ出した分は表示しない */
+  overflow: hidden;
   /* テキスト左寄せ */
   text-align: left;
   /* テキストはみ出しは3点リーダー */
-  overflow: hidden;
   text-overflow: ellipsis;
   /* テキスト折り返しなし */
   white-space: nowrap;
 }
 
+/* 先頭行1列目 */
 .one-month-table thead :nth-child(1) {
   width: 20px;
 }
 
+/* 先頭行2列目 */
 .one-month-table thead :nth-child(2) {
   width: 60px;
 }
 
+/* 先頭行3列目 */
 .one-month-table thead :nth-child(3) {
   width: 80px;
 }
 
+/* 先頭行4列目 */
 .one-month-table thead :nth-child(4) {
   width: 80px;
 }
 
+/* 先頭行5列目 */
 .one-month-table thead :nth-child(5) {
   width: 150px;
 }
 
+/* 先頭行6列目 */
 .one-month-table thead :nth-child(6) {
   width: 80px;
 }
 
+/* 先頭行以外1列目 */
 .one-month-table tbody tr :nth-child(1) {
+  /* 中央揃え */
   text-align: center;
 }
 
+/* 先頭行以外6列目 */
 .one-month-table tbody tr :nth-child(6) {
+  /* 右揃え */
   text-align: right;
 }
 
+/* ダークモード */
 @media (prefers-color-scheme: dark) {
   .option-button {
-    background-color: #282828;
-    border-color: #efefef;
-    color: #efefef;
+    background-color: #4f4f4f;
+    border-color: #dfdfdf;
   }
 
-  .option-button:hover:not(:disabled) {
-    background-color: #0f0f0f;
+  .option-button:hover {
+    background-color: #5f5f5f;
   }
 
-  .option-button:active:not(:disabled) {
+  .option-button:active {
     background-color: #3f3f3f;
+  }
+
+  .option-button:disabled {
+    background-color: #4f4f4f;
   }
 }

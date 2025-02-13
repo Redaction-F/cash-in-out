@@ -1,113 +1,155 @@
 /* タブ全体 */
 .tabs-wrapper {
-  border-top: 2px solid #2f2f2f;
-  height: 14vh;
-  width: 100%;
-  /* 子要素を横に配置 */
+  /* 枠(上) */
+  border-top: 2px solid;
+  /* 枠(上)の色 */
+  border-top-color: #2f2f2f;
+  /* 子要素を横並びに配置 */
   display: flex;
-  flex-direction: row;
+  /* 高さ */
+  height: 14vh;
+  /* 両端揃え(端の余白は半分) */
   justify-content: space-around;
+  /* 幅 */
+  width: 100%;
 }
 
 /* タブ */
 .tab {
-  margin: 0.5vh;
+  /* 高さ */
   height: 13vh;
-  width: 20%;
-  /* tab::after, tab::beforeのための設定 */
+  /* 外余白 */
+  margin: 0.5vh 0% 0.5vh 0%;
+  /* tab::after,tab::beforeのための設定 */
   position: relative;
+  /* 幅 */
+  width: 20%;
   /* 前面に移動 */
   z-index: 1;
 }
 
 /* タブ右下の装飾 */
 .tab::after {
-  border-right: 1px solid #2f2f2f;
-  border-bottom: 1px solid #2f2f2f;
-  height: 5vh;
-  width: 30%;
+  /* 枠(下) */
+  border-bottom: 1px solid;
+  /* 枠(下)の色 */
+  border-bottom-color: #2f2f2f;
+  /* 枠(右) */
+  border-right: 1px solid;
+  /* 枠(右)の色 */
+  border-right-color: #2f2f2f;
+  /* 親要素からの相対位置(下) */
+  bottom: -1px;
   /* 疑似要素の内容 */
   content: "";
-  /* 位置取り */
+  /* 高さ */
+  height: 5vh;
+  /* 位置取り等の設定 */
   position: absolute;
-  bottom: -1px;
+  /* 親要素からの相対位置(右) */
   right: -1px;
+  /* 幅 */
+  width: 30%;
   /* 背面に移動 */
   z-index: -1;
 }
 
 /* タブラベル */
 .tab-label {
-  height: 100%;
-  width: 100%;
-  background-color: #cfcfcf;
-  /* 丸角 */
-  border-radius: 20% 20% 0% 20% / 40% 40% 0% 40%;
-  /* テキストの中央配置 */
-  display: flex;
-  justify-content: center;
+  /* 中央揃え */
   align-items: center;
+  /* 背景色 */
+  background-color: #dfdfdf;
+  /* 子要素を横並びに配置 */
+  display: flex;
+  /* フォントサイズ */
+  font-size: 18px;
+  /* 高さ */
+  height: 100%;
+  /* 中央揃え(上下) */
+  justify-content: center;
+  /* 幅 */
+  width: 100%;
 }
 
 /* タブラベルホバー時 */
 .tab-label:hover {
-  background-color: #bfbfbf;
+  /* 背景色 */
+  background-color: #cfcfcf;
 }
 
+/* タブボタン */
 .tab-button {
+  /* 表示しない(機能のみ使用) */
   display: none;
 }
 
-/* タブ選択時 */
+/* タブ選択時のタブラベル */
 .tab-button:checked + .tab-label {
-  margin: 0;
-  background-color: #dfdfdf;
+  /* 背景色 */
+  background-color: #efefef;
 }
 
+/* タブ選択時のタブ */
 .tab:has(.tab-button:checked) {
+  /* 外余白(上) */
   margin-top: 0;
 }
 
+/* タブ選択時のタブ上の装飾 */
 .tab.tab:has(.tab-button:checked)::before {
-  margin-top: -2px;
-  border-left: 2px solid #2f2f2f;
-  border-right: 2px solid #2f2f2f;
-  height: 20%;
-  width: 100%;
+  /* 背景色 */
   background-color: #efefef;
-  /* 位置取り */
-  position: absolute;
-  top: 0px;
+  /* 枠(左) */
+  border-left: 2px solid;
+  /* 枠(左)の色 */
+  border-left-color: #2f2f2f;
+  /* 枠(右) */
+  border-right: 2px solid;
+  /* 枠(右)の色 */
+  border-right-color: #2f2f2f;
+  /* heightにborder,paddingを含める */
+  box-sizing: border-box;
   /* 疑似要素の内容 */
   content: "";
+  /* 高さ */
+  height: 2.5vh;
+  /* タブラッパーの枠線を消す */
+  margin-top: -2px;
+  /* 位置取り等の設定 */
+  position: absolute;
+  /* 幅 */
+  width: 100%;
   /* 前面に移動 */
-  z-index: -1;
+  z-index: 1;
 }
 
+/* ダークモード */
 @media (prefers-color-scheme: dark) {
   .tabs-wrapper {
-    border-color: #efefef;
+    border-color: #dfdfdf;
   }
 
   .tab::after {
-    border-color: #efefef;
+    border-right-color: #dfdfdf;
+    border-bottom-color: #dfdfdf;
   }
 
   .tab-label {
-    background-color: #282828;
-  }
-
-  .tab-label:hover {
-    background-color: #0f0f0f;
-  }
-
-  .tab-button:checked + .tab-label {
     background-color: #3f3f3f;
   }
 
-  .tab.tab:has(.tab-button:checked)::before {
-    border-left-color: #efefef;
-    border-right-color: #efefef;
+  .tab-label:hover {
     background-color: #4f4f4f;
+  }
+
+  .tab-button:checked + .tab-label {
+    background-color: #2f2f2f;
+  }
+
+  .tab.tab:has(.tab-button:checked)::before {
+    background-color: #2f2f2f;
+    border-left-color: #dfdfdf;
+    border-right-color: #dfdfdf;
   }
 }

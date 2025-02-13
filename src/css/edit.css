@@ -1,65 +1,151 @@
-.input-area {
-  margin: 2vh 1% 2vh 1%;
+/* 入力項目 */
+.input-row {
+  /* 子要素を横並びに配置 */
   display: flex;
+  /* 外余白 */
+  margin: 2vh 1% 2vh 1%;
 }
 
+/* 入力項目ラベル */
 .input-label {
-  width: 20%;
-  display: block;
+  /* クリックで入力に移れる */
   cursor: pointer;
+  /* flexbox内に配置できる */
+  display: block;
+  /* 幅 */
+  width: 20%;
 }
 
+/* 入力部分 */
 .input-input {
-  border: 0px;
-  border-bottom: 1px solid #2f2f2f;
+  /* 背景色 */
   background-color: #cfcfcf;
+  /* 枠 */
+  border: 0px;
+  /* 枠(下) */
+  border-bottom: 1px solid;
+  /* 枠(下)の色 */
+  border-bottom-color: #2f2f2f;
+  /* 内余白 */
   padding: 0 1% 0 1%;
+  /* 幅 */
   width: 80%;
 }
 
+/* 入力部分(非アクティブ時) */
 .input-input:disabled {
+  /* 背景色 */
   background-color: #efefef;
 }
 
+/* 数字入力のスピンボタンを消す */
 .input-input[type="number"]::-webkit-inner-spin-button,
 .input-input[type="number"]::-webkit-outer-spin-button {
-    -webkit-appearance: none;
+  -webkit-appearance: none;
 }
 
+/* テキスト入力部分 */
 .input-textarea {
-  border: 0px;
-  border-bottom: 1px solid #2f2f2f;
-  padding: 0 1% 0 1%;
+  /* 背景色 */
   background-color: #cfcfcf;
+  /* 枠 */
+  border: 0px;
+  /* 枠(下) */
+  border-bottom: 1px solid;
+  /* 枠(下)の色 */
+  border-bottom-color: #2f2f2f;
+  /* 高さ */
   height: 15vh;
+  /* 内余白 */
+  padding: 0 1% 0 1%;
+  /* 幅 */
   width: 80%;
 }
 
+/* テキスト入力時(非アクティブ時) */
 .input-textarea:disabled {
+  /* 背景色 */
   background-color: #efefef;
 }
 
+/* 編集ボタンラッパー */
 .edit-buttons {
+  /* 子要素を横並びに配置 */
   display: flex;
+  /* 内余白(下) */
+  padding-bottom: 5vh;
 }
 
+/* 編集ボタン */
 .edit-button {
-  border: 1px solid #2f2f2f;
-  height: 5vh;
-  width: 10%;
+  /* 背景色 */
   background-color: #cfcfcf;
+  /* 枠 */
+  border: 1px solid;
+  /* 枠の色 */
+  border-color: #2f2f2f;
+  /* 高さ */
+  height: 5vh;
+  /* 幅 */
+  width: 10%;
 }
 
-.edit-button:disabled {
-  opacity: 0.3;
-  /* カーソルを非アクティブに */
-  cursor: not-allowed;
-}
-
-.edit-button:hover:not(:disabled) {
+/* 編集ボタン(ホバー時) */
+.edit-button:hover {
+  /* 背景色 */
   background-color: #bfbfbf;
 }
 
-.edit-button:active:not(:disabled) {
+/* 編集ボタン(クリック時) */
+.edit-button:active {
+  /* 背景色 */
   background-color: #dfdfdf;
+}
+
+/* 編集ボタン(非アクティブ時) */
+.edit-button:disabled {
+  /* 背景色 */
+  background-color: #cfcfcf;
+  /* カーソルを非アクティブに */
+  cursor: not-allowed;
+  /* 透明度 */
+  opacity: 0.3;
+}
+
+/* ダークモード */
+@media (prefers-color-scheme: dark) {
+  .input-input {
+    background-color: #4f4f4f;
+    border-bottom-color: #dfdfdf;
+  }
+  
+  .input-input:disabled {
+    background-color: #2f2f2f;
+  }
+
+  .input-textarea {
+    background-color: #4f4f4f;
+    border-bottom-color: #dfdfdf;
+  }
+
+  .input-textarea:disabled {
+    background-color: #2f2f2f;
+  }
+
+  .edit-button {
+    background-color: #4f4f4f;
+    border-color: #dfdfdf;
+  }
+
+  .edit-button:hover {
+    background-color: #5f5f5f;
+  }
+
+  .edit-button:active {
+    background-color: #3f3f3f;
+  }
+
+  .edit-button:disabled {
+    background-color: #4f4f4f;
+  }
 }

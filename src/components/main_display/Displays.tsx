@@ -1,6 +1,6 @@
 import { RefObject, useRef } from "react";
-import Data from "../Data/Data";
-import Edit from "../Edit/Edit";
+import Data from "../data/Data";
+import Edit from "../edit/Edit";
 
 function Displays(props: {tab_names: string[], setDisplayContents: (display_contents_arg: {[key: string]: RefObject<HTMLDivElement>}) => void}) {
   const display_contents: {[key: string]: RefObject<HTMLDivElement>} = {};

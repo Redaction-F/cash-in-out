@@ -1,72 +1,107 @@
 /* 
-  ライトモード
-    #efefef: 背景
-    #dfdfdf: ボタン背景(押下時)
-    #cfcfcf: ボタン背景
-    #bfbfbf: ボタン背景(ホバー時)
-    #2f2f2f: 境界、テキスト
-  
-  ダークモード
-    #efefef: 境界、テキスト
-    #4f4f4f: 背景
-    #3f3f3f: ボタン背景(押下時)
-    #282828: ボタン背景
-    #0f0f0f: ボタン背景(ホバー時)
+  色
+  light   dark
+  #efefef #1f1f1f 背景
+  #dfdfdf #2f2f2f ボタン背景(押下時)
+  #cfcfcf #3f3f3f ボタン背景
+  #bfbfbf #4f4f4f ボタン背景(ホバー時)
+  #2f2f2f #dfdfdf 境界、テキスト
+
+  大きさはvhもしくは%で指定
+  ただし枠線とそこに関わる部分はpxで指定
 */
 
 :root {
-  font-family: "Inter", "Avenir", "Helvetica", "Arial", sans-serif;
-  font-size: 16px;
-  color: #2f2f2f;
+  /* 背景色 */
   background-color: #efefef;
+  /* スクロール不可 */
+  overflow: hidden;
+}
+
+:root, button, input, textarea {
+  /* フォント色 */
+  color: #2f2f2f;
+  /* フォント */
+  /* Noto Sans JP: Google Fonts */
+  /* Helvetica Neue: macOS,iOS 欧文 */
+  /* Helvetica Sans: macOS,iOS 和文 */
+  /* Arial: win 欧文 */
+  /* Yu Gothic: win 和文 */
+  /* sans-serif: 総称 */
+  font-family: "Helvetica Neue", "Hiragino Sans", "Arial", "Yu Gothic", sans-serif;
+  /* font-family: "Noto Sans JP", "Helvetica Neue", "Hiragino Sans", "Arial", "Yu Gothic", sans-serif; */
+  /* フォントの最適化 */
+  font-optical-sizing: auto;
+  /* フォントサイズ */
+  font-size: 14px;
+  /* フォントの太さ */
+  font-weight: 400;
 }
 
 * {
   /* bodyのデフォルトのmarginを打ち消す */
   margin: 0;
+  /* bodyのデフォルトのpaddingを打ち消す */
   padding: 0;
 }
 
 /* 全体 */
 .container {
-  margin: 1vh 1vw 1vh 1vw;
-  border: 2px solid;
-  border-color: #2f2f2f;
-  padding: 2vh 2vw 2vh 2vw;
-  height: 98vh;
-  /* heightにborder, paddingを含める */
-  box-sizing: border-box;
-  /* 子要素の柔軟な配置 */
-  display: flex;
-  /* 子要素を縦に配置 */
-  flex-direction: column;
-  /* 子要素を上詰めに配置 */
-  justify-content: flex-start;
-  /* 子要素を中央揃えに配置 */
+  /* 子要素を中央揃えに配置(display: flex) */
   align-items: flex-start;
+  /* 枠線 */
+  border: 2px solid;
+  /* 枠線の色 */
+  border-color: #2f2f2f;
+  /* heightにborder,paddingを含める */
+  box-sizing: border-box;
+  /* 子要素を横並びに配置(今回はalign-itemsとjustify-contentを適用するために使用) */
+  display: flex;
+  /* 子要素を縦に配置(display: flex) */
+  flex-direction: column;
+  /* 高さ */
+  /* margin-top + height + margin-bottom = 100vh */
+  height: 98vh;
+  /* 子要素を上詰めに配置(display: flex) */
+  justify-content: flex-start;
+  /* 外余白 */
+  margin: 1vh 1vw 1vh 1vw;
+  /* 内余白 */
+  padding: 2vh 2vw 2vh 2vw;
 }
 
-/* ディスプレイ */
+/* 各画面のラッパー */
 .displays {
+  /* 高さ */
+  /* container.padding-top + height + tab_wrapper.height + container.padding-buttom = container.height */
   height: 80vh;
+  /* 幅 */
   width: 100%;
 }
 
+/* 各画面 */
 .display {
+  /* 最初はすべて表示しない */
   display: none;
 }
 
+/* 各画面 */
 .display-show {
+  /* 表示する画面にのみ付与 */
   display: block;
 }
 
+/* ダークモード */
 @media (prefers-color-scheme: dark) {
   :root {
-    color: #efefef;
-    background-color: #4f4f4f;
+    background-color: #2f2f2f;
+    color: #dfdfdf
   }
 
+  button, input, textarea {
+    color: #dfdfdf;
+  }
   .container {
-    border-color: #efefef;
+    border-color: #dfdfdf;
   }
 }

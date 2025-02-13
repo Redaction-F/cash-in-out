@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { OneMonthTableRow } from "../logic";
+import { OneMonthTableRow } from "../../logic";
 import TableRow from "./TableRow";
 
 function Table(props: {tableRows: OneMonthTableRow[], setCheckedRowsWrap: (value: boolean[]) => void}) {

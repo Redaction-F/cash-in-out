@@ -1,37 +1,50 @@
-use std::fmt::Display;
+use std::{fmt::{Debug, Display}, error};
 use serde::Serialize;
 
-#[derive(Debug)]
+// エラー型
 pub enum Error {
     ReadCsvError(String)
 }
 
 impl Error {
-    pub const READ_CSV_ERROR: Error = Error::ReadCsvError(String::new());
-
-    pub fn from_msg(kind: Error, msg: &str) -> Error {
+    // 自分で定義したメッセージからエラー型を作成
+    pub fn from_msg(kind: ErrorDiscriminants, msg: &str) -> Error {
         match kind {
-            Error::ReadCsvError(_) => Error::ReadCsvError(format!("Read Csv Error: {}", msg))
+            ErrorDiscriminants::ReadCsvError => Error::ReadCsvError(format!("{}", msg))
         }
     }
 
-    pub fn from_into_string<T>(kind: Error, msg: &str, into_string: T) -> Error
+    // 自分で定義したメッセージ+エラーの原因からエラー型を作成
+    pub fn from_into_string<T>(kind: ErrorDiscriminants, msg: &str, into_string: T) -> Error
         where
             T: Display {
         match kind {
-            Error::ReadCsvError(_) => Error::ReadCsvError(format!("Read Csv Error: {} ({})", msg, into_string.to_string()))
+            ErrorDiscriminants::ReadCsvError => Error::ReadCsvError(format!("{} ({})", msg, into_string.to_string()))
         }
     }
 }
 
-// impl Display for Error {
-//     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-//         write!(f, "{}", match self {
-//             Error::ReadCsvError(rce_) => rce_
-//         })
-//     }
-// }
+impl Debug for Error {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let msg = match self {
+            Error::ReadCsvError(e) => format!("ReadCsvError: {}", e)
+        };
+        write!(f, "{}", msg)
+    }
+}
 
+impl Display for Error {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let msg = match self {
+            Error::ReadCsvError(e) => format!("ReadCsvError: {}", e)
+        };
+        write!(f, "{}", msg)
+    }
+}
+
+impl error::Error for Error {}
+
+// エラーを文字列データに変換
 impl Serialize for Error {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
         where
@@ -40,4 +53,9 @@ impl Serialize for Error {
             Error::ReadCsvError(rce_) => serializer.serialize_newtype_variant("RustError", 0, "ReadCsvError", rce_)
         }
     }
+}
+
+// エラー型(中身なし)
+pub enum ErrorDiscriminants {
+    ReadCsvError
 }
