@@ -1,3 +1,5 @@
+// 不要ファイル
+
 use std::fs::File;
 use log::{error, warn};
 use csv::{Reader, ReaderBuilder};
@@ -28,7 +30,7 @@ impl CsvData {
     fn read_csv(data_path: String) -> Result<Vec<CsvData>, Error> {
         let file: File = File::open(data_path)
             .map_err(|e| {
-                let e: Error = Error::from_into_string(ErrorKinds::ReadCsvError, "can't read file", e);
+                let e: Error = Error::from_into_string(ErrorKinds::ReadCsvError, "Failed to read file", e);
                 error!("{}", e);
                 e
             })?;
@@ -37,7 +39,7 @@ impl CsvData {
             .deserialize::<CsvData>()
             .collect::<Result<Vec<CsvData>, csv::Error>>()
             .map_err(|e| {
-                let e: Error = Error::from_into_string(ErrorKinds::ReadCsvError, "fail to parse csv", e);
+                let e: Error = Error::from_into_string(ErrorKinds::ReadCsvError, "Failed to parse csv", e);
                 error!("{}", e);
                 e
             })?;
@@ -207,7 +209,7 @@ impl TryFrom<String> for DateInLocal {
     type Error = Error;
 
     fn try_from(value: String) -> Result<Self, Self::Error> {
-        const ERROR_MSG: &str = r#"fail to parse this date data"#;
+        const ERROR_MSG: &str = r#"Failed to parse this date data"#;
         let re: Regex = match Regex::new(r"(\d{4})/(\d{1,2})/(\d{1,2})") {
             Ok(o) => o, 
             Err(e) => {

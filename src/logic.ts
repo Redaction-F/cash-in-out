@@ -4,7 +4,7 @@
 export type OneMonthTableRow = {
   id: number, 
   date: String, 
-  category: String | null, 
+  category: String, 
   title: string, 
   amount: number, 
   memo: string

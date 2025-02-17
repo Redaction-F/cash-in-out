@@ -14,7 +14,7 @@ function Data() {
   };
 
   useEffect(() => {
-    invoke<OneMonthTableRow[]>("read_csv", {dataTitle: "data"}).then(setTableRows);
+    invoke<OneMonthTableRow[]>("first_get_from_db", {dataTitle: "data"}).then(setTableRows);
   }, []);
 
   useEffect(() => {
