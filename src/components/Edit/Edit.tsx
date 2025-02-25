@@ -45,12 +45,12 @@ function Edit(props: {displayHandler: DisplayHandler, specialFunctions: SpecialF
     setInputDefaultValues["memo"]("");
   }
 
-  function startEdit(id: string | undefined) {
-    if (id?.length === 0) {
+  function startEdit(id: number) {
+    if (Number.isNaN(id)) {
       alert("Please input id.");
       return;
     }
-    invoke<CashRecord | null>("get_one_from_db", {id: Number(id)}).then((value: CashRecord | null) => {
+    invoke<CashRecord | null>("get_one_from_db", {id: id}).then((value: CashRecord | null) => {
       if (value === null) {
         alert("There is no data of the inputted id.");
       } else {
@@ -89,7 +89,7 @@ function Edit(props: {displayHandler: DisplayHandler, specialFunctions: SpecialF
   return (
     <>
       <div className="edit-buttons">
-        <button className="edit-button" onClick={startEdit.bind(window, inputs["id"].current?.value)} disabled={mode !== "selectMode"}>編集</button>
+        <button className="edit-button" onClick={startEdit.bind(window, Number(inputs["id"].current?.value))} disabled={mode !== "selectMode"}>編集</button>
         <button className="edit-button" onClick={edit} disabled={mode != "editMode"}>変更</button>
         <button className="edit-button" onClick={cancelEdit} disabled={mode != "editMode"}>キャンセル</button>
       </div>

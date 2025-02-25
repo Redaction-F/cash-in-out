@@ -23,5 +23,5 @@ export type DisplayHandler = {
 
 export type SpecialFunctions = {
   changeDisplay: ((displayName: DisplayName) => Promise<void>) | undefined
-  startEdit: ((id: string) => void) | undefined
+  startEdit: ((id: number) => void) | undefined
 }

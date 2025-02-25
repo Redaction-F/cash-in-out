@@ -2,14 +2,14 @@ import { useEffect, useState } from "react";
 import { CashRecord } from "../../logic";
 import TableRow from "./TableRow";
 
-function Table(props: {tableRows: CashRecord[], setCheckedRowsWrap: (value: boolean[]) => void}) {
-  const [checkedRows, setCheckedRows] = useState<boolean[]>([]);
+function Table(props: {tableRows: CashRecord[], setCheckedRowsWrap: (value: [boolean, number][]) => void}) {
+  const [checkedRows, setCheckedRows] = useState<[boolean, number][]>([]);
 
   function setCheckedRow(index: number, value: boolean) {
-    if (checkedRows.length === 0) {
-      setCheckedRows(Array(props.tableRows.length).fill(false));
+    if (checkedRows.length !== props.tableRows.length) {
+      setCheckedRows(props.tableRows.map((v) => [false, v.id]));
     };
-    setCheckedRows((prevState) => prevState.map((v, i) => i === index ? value : v));
+    setCheckedRows((prevState) => prevState.map((v, i) => i === index ? [value, v[1]] : v));
   };
 
   useEffect(() => {
