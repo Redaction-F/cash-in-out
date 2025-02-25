@@ -8,6 +8,7 @@ use regex::{Regex, Captures};
 use crate::other::{Error, ErrorKinds};
 
 // csv読み込み
+#[allow(dead_code)]
 #[tauri::command]
 pub fn read_csv(data_title: String) -> Result<Vec<CsvData>, Error> {
     CsvData::read_csv(format!("data/{}.csv", data_title))
@@ -71,7 +72,6 @@ impl<'de> Deserialize<'de> for CsvData {
             D: de::Deserializer<'de> {
         deserializer.deserialize_struct("Row2", &CsvData::FIELDS, CsvDataVistor)
     }
-
 }
 
 // CsvData as Deserialize用

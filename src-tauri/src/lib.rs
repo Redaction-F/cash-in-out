@@ -3,6 +3,4 @@ mod other;
 mod functions;
 mod database;
 
-pub use rw_csv::read_csv;
-pub use database::first_get_from_db;
-pub use functions::count_true;
+pub use functions::{count_true, first_get_from_db, get_in_month_from_db, get_one_from_db, update_one_from_db};

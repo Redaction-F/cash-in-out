@@ -1,30 +1,70 @@
-import { RefObject, useState } from "react";
+import { useState, useRef } from "react";
 import Displays from "./Displays";
 import TabsWrapper from "./TabsWrapper";
+import { DisplayHandler, DisplayName, SpecialFunctions } from "../../logic";
 
 function MainDisplay() {
-  const tab_names: string[] = ["main", "data", "edit", "set"];
-  const [currentTab, setCurrentTab] = useState<string>("main");
-  const display_contents: {[key: string]: RefObject<HTMLDivElement>} = {};
+  const [currentTab, setCurrentTab] = useState<DisplayName>("main");
+  const displayHandlers: {[key in DisplayName]: DisplayHandler} = {
+    "main": {
+    content: useRef<HTMLDivElement>(null),
+    tab: useRef<HTMLInputElement>(null), 
+    onClose: async() => {
+      return true
+    },
+    onOpen: () => {},
+  }, 
+    "data": {
+    content: useRef<HTMLDivElement>(null),
+    tab: useRef<HTMLInputElement>(null), 
+    onClose: async() => {
+      return true
+    },
+    onOpen: () => {},
+  }, 
+    "edit": {
+    content: useRef<HTMLDivElement>(null),
+    tab: useRef<HTMLInputElement>(null), 
+    onClose: async() => {
+      return true
+    },
+    onOpen: () => {},
+  }, 
+    "set": {
+    content: useRef<HTMLDivElement>(null),
+    tab: useRef<HTMLInputElement>(null), 
+    onClose: async() => {
+      return true
+    },
+    onOpen: () => {},
+  }};
 
-  function setDisplayContents(display_contents_arg: {[key: string]: RefObject<HTMLDivElement>}) {
-    Object.entries(display_contents_arg).forEach(([key, value]: [string, RefObject<HTMLDivElement>]) => {
-      display_contents[key] = value;
-    });
+  const specialFunctions: SpecialFunctions = {
+    changeDisplay: changeDisplay, 
+    startEdit: undefined
   };
 
-  function changeDisplayWrapper(tab_name: string) {
-    return () => {
-      display_contents[currentTab].current?.classList.remove("display-show");
-      display_contents[tab_name].current?.classList.add("display-show");
-      setCurrentTab(tab_name);
+  async function changeDisplay(tabName: DisplayName) {
+    if (displayHandlers[currentTab].tab.current !== null && displayHandlers[tabName].tab.current !== null) {
+      displayHandlers[tabName].tab.current.checked = false;
+      displayHandlers[currentTab].tab.current.checked = true;
     }
+    if (await displayHandlers[currentTab].onClose()) {
+      if (displayHandlers[currentTab].tab.current !== null && displayHandlers[tabName].tab.current !== null) {
+        displayHandlers[currentTab].tab.current.checked = false;
+        displayHandlers[tabName].tab.current.checked = true;
+      }
+      displayHandlers[currentTab].content.current?.classList.remove("display-show");
+      displayHandlers[tabName].content.current?.classList.add("display-show");
+      displayHandlers[tabName].onOpen();
+      setCurrentTab(tabName);
+    };
   };
 
   return (
     <>
-      <Displays tab_names={tab_names} setDisplayContents={setDisplayContents}/>
-      <TabsWrapper changeDisplayWrapper={changeDisplayWrapper} />
+      <Displays displayHandlers={displayHandlers} specialFunctions={specialFunctions} />
+      <TabsWrapper displayHandlers={displayHandlers} changeDisplay={changeDisplay} />
     </>
   )
 }

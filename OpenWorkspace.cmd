@@ -2,5 +2,4 @@
 start cd .\src-tauri
 start
 start cd /
-code .
-cls
+code . & code .\src-tauri & cls

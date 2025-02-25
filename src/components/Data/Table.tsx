@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
-import { OneMonthTableRow } from "../../logic";
+import { CashRecord } from "../../logic";
 import TableRow from "./TableRow";
 
-function Table(props: {tableRows: OneMonthTableRow[], setCheckedRowsWrap: (value: boolean[]) => void}) {
+function Table(props: {tableRows: CashRecord[], setCheckedRowsWrap: (value: boolean[]) => void}) {
   const [checkedRows, setCheckedRows] = useState<boolean[]>([]);
 
   function setCheckedRow(index: number, value: boolean) {

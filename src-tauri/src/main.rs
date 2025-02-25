@@ -18,7 +18,13 @@ async fn main() {
         })
         .init();
     tauri::Builder::default()
-        .invoke_handler(tauri::generate_handler![cash_in_out::first_get_from_db, cash_in_out::count_true])
+        .invoke_handler(tauri::generate_handler![
+            cash_in_out::count_true, 
+            cash_in_out::first_get_from_db, 
+            cash_in_out::get_in_month_from_db, 
+            cash_in_out::get_one_from_db, 
+            cash_in_out::update_one_from_db
+        ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

@@ -1,11 +1,11 @@
 import { invoke } from "@tauri-apps/api/tauri";
 import { useState, useEffect } from "react";
-import { OneMonthTableRow } from "../../logic";
+import { CashRecord, SpecialFunctions } from "../../logic";
 import Table from "./Table";
 import OptionButtons from "./OptionButtons";
 
-function Data() {
-  const [tableRows, setTableRows] = useState<OneMonthTableRow[]>([]);
+function Data(props: {specialFunctions: SpecialFunctions}) {
+  const [tableRows, setTableRows] = useState<CashRecord[]>([]);
   const [checkedRows, setCheckedRows] = useState<boolean[]>([]);
   const [checkedRowsCount, setCheckedRowsCount] = useState<number>(0);
 
@@ -14,7 +14,7 @@ function Data() {
   };
 
   useEffect(() => {
-    invoke<OneMonthTableRow[]>("first_get_from_db", {dataTitle: "data"}).then(setTableRows);
+    invoke<CashRecord[]>("first_get_from_db").then(setTableRows);
   }, []);
 
   useEffect(() => {
@@ -23,7 +23,7 @@ function Data() {
 
   return (
     <>
-      <OptionButtons checkedRowsCount={checkedRowsCount}/>
+      <OptionButtons checkedRowsCount={checkedRowsCount} specialFunctions={props.specialFunctions}/>
       <Table tableRows={tableRows} setCheckedRowsWrap={setCheckedRowsWrap}/>
     </>
   )

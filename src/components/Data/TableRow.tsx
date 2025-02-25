@@ -1,6 +1,6 @@
-import { OneMonthTableRow } from "../logic";
+import { CashRecord } from "../../logic";
 
-function TableRow(props: {row: OneMonthTableRow, setCheckedRow: (value: boolean) => void}) {
+function TableRow(props: {row: CashRecord, setCheckedRow: (value: boolean) => void}) {
   return(
     <tr>
       <th scope="row">
@@ -10,7 +10,7 @@ function TableRow(props: {row: OneMonthTableRow, setCheckedRow: (value: boolean)
         {props.row.id}
       </th>
       <td>
-        {props.row.date === null ? "null" : props.row.date}
+        {props.row.date}
       </td>
       <td>
         {props.row.category}
