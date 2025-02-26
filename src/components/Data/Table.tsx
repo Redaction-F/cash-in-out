@@ -1,23 +1,15 @@
-import { useEffect, useState } from "react";
 import { CashRecord } from "../../logic";
-import TableRow from "./TableRow";
 
-function Table(props: {tableRows: CashRecord[], setCheckedRowsWrap: (value: [boolean, number][]) => void}) {
-  const [checkedRows, setCheckedRows] = useState<[boolean, number][]>([]);
-
-  function setCheckedRow(index: number, value: boolean) {
-    if (checkedRows.length !== props.tableRows.length) {
-      setCheckedRows(props.tableRows.map((v) => [false, v.id]));
-    };
-    setCheckedRows((prevState) => prevState.map((v, i) => i === index ? [value, v[1]] : v));
-  };
-
-  useEffect(() => {
-    props.setCheckedRowsWrap(checkedRows);
-  }, [checkedRows]);
+// data displayの出入金データ表
+function Table(props: {tableRows: CashRecord[], updateCheckedRow: (index: number, value: boolean) => void}) {
+  // 各行のチェックボックスのonChangeでeventからとれるようにラップ
+  function updateCheckedRowWrap(index: number, event: React.ChangeEvent<HTMLInputElement>) {
+    props.updateCheckedRow(index, event.target.checked)
+  }
 
   return(
     <table className="one-month-table">
+      {/* 先頭行 */}
       <thead>
         <tr>
           <th scope="col"></th>
@@ -25,7 +17,7 @@ function Table(props: {tableRows: CashRecord[], setCheckedRowsWrap: (value: [boo
             ID
           </th>
           <th scope="col">
-            日時
+            日付
           </th>
           <th scope="col">
             カテゴリ
@@ -44,7 +36,30 @@ function Table(props: {tableRows: CashRecord[], setCheckedRowsWrap: (value: [boo
       <tbody>
         {
           props.tableRows.map((tableRow, index) => 
-            <TableRow row={tableRow} setCheckedRow={(value: boolean) => setCheckedRow(index, value)} key={tableRow.id}/>
+            // 一行
+            <tr key={tableRow.id}>
+              <th scope="row">
+                <input type="checkbox" id={String(tableRow.id)} name="row" onChange={updateCheckedRowWrap.bind(window, index)}/>
+              </th>
+              <th>
+                {tableRow.id}
+              </th>
+              <td>
+                {tableRow.date}
+              </td>
+              <td>
+                {tableRow.category}
+              </td>
+              <td>
+                {tableRow.title}
+              </td>
+              <td>
+                {tableRow.amount}
+              </td>
+              <td title={tableRow.memo}>
+                {tableRow.memo}
+              </td>
+            </tr>
           )
         }
       </tbody>

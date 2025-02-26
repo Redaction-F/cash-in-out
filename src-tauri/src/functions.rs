@@ -7,10 +7,9 @@ use crate::{
 
 // Vec<bool>型の値のtrueの数を数える
 #[tauri::command]
-pub fn count_true(vec: Vec<(bool, usize)>) -> (usize, Option<usize>) {
-    let first_el: Option<usize> = vec.iter().filter(|&&(v, _)| v).next().map(|&(_, v)| v);
-    let count: usize = vec.iter().filter(|&&(v, _)| v).count();
-    (count, first_el)
+pub fn count_and_get_first(vec: Vec<(bool, usize)>) -> (usize, Option<usize>) {
+    let mut true_vec = vec.into_iter().filter(|&(v, _)| v);
+    true_vec.next().map_or_else(|| (0, None), |(_, v)| (true_vec.count() + 1, Some(v)))
 }
 
 #[tauri::command]

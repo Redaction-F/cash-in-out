@@ -1,9 +1,9 @@
-import MainDisplay from "./components/main_display/MainDisplay";
+import AppDisplay from "./components/app_display/AppDisplay";
 
 function App() {
   return (
     <div className="container">
-      <MainDisplay />
+      <AppDisplay />
     </div>
   );
 }

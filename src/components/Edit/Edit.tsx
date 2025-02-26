@@ -1,32 +1,10 @@
 import { invoke } from "@tauri-apps/api/tauri";
 import { RefObject, useRef, useState } from "react";
+import EditButtons from "./EditButtons";
 import { CashRecord, DisplayHandler, ModeOfEdit, SpecialFunctions } from "../../logic";
 
 function Edit(props: {displayHandler: DisplayHandler, specialFunctions: SpecialFunctions}) {
-  const inputs: {[key: string]: RefObject<HTMLInputElement>} = {};
-  ["id", "date", "category", "title", "amount"].forEach((value: string) => {
-    inputs[value] = useRef<HTMLInputElement>(null);
-  })
-  const inputMemo: RefObject<HTMLTextAreaElement> = useRef<HTMLTextAreaElement>(null);
-  const inputDefaultValues: {[key: string]: string} = {};
-  const setInputDefaultValues: {[key: string]: React.Dispatch<React.SetStateAction<string>>} = {};
-  ["id", "date", "category", "title", "amount", "memo"].forEach((value: string) => {
-    [inputDefaultValues[value], setInputDefaultValues[value]] = useState<string>("");
-  })
-  const [mode, setMode] = useState<ModeOfEdit>("selectMode");
-
-  props.displayHandler.onClose = async() => {
-    if (mode === "selectMode") {
-      return true;
-    }
-    if (await confirm("Cancel the edit? The data you are editting will not be saved.")) {
-      cancelEdit();
-      return true;
-    } else {
-      return false;
-    }
-  };
-
+  // valueの内容に入力フォームを初期化
   function setInput(value: CashRecord) {
     setInputDefaultValues["id"](String(value.id));
     setInputDefaultValues["date"](value.date);
@@ -35,7 +13,7 @@ function Edit(props: {displayHandler: DisplayHandler, specialFunctions: SpecialF
     setInputDefaultValues["amount"](String(value.amount));
     setInputDefaultValues["memo"](value.memo);
   }
-
+  // 入力フォームを初期化
   function setInputEmpty() {
     setInputDefaultValues["id"]("");
     setInputDefaultValues["date"]("");
@@ -44,23 +22,22 @@ function Edit(props: {displayHandler: DisplayHandler, specialFunctions: SpecialF
     setInputDefaultValues["amount"]("");
     setInputDefaultValues["memo"]("");
   }
-
-  function startEdit(id: number) {
-    if (Number.isNaN(id)) {
-      alert("Please input id.");
+  // 出入金データ編集開始
+  function startEdit(id: number | null) {
+    if (id === null) {
+      alert("IDを入力して下さい。");
       return;
     }
     invoke<CashRecord | null>("get_one_from_db", {id: id}).then((value: CashRecord | null) => {
       if (value === null) {
-        alert("There is no data of the inputted id.");
+        alert("入力されたIDのデータは存在しません。\n存在するデータのIDを入力するか、データ一覧から選択して編集してください。");
       } else {
         setInput(value);
         setMode("editMode");
       }
     })
   }
-  props.specialFunctions.startEdit = startEdit;
-
+  // 出入金データ更新
   function edit() {
     let changedData: CashRecord = {
       id: parseInt(inputs["id"].current?.value!), 
@@ -70,29 +47,53 @@ function Edit(props: {displayHandler: DisplayHandler, specialFunctions: SpecialF
       amount: parseInt(inputs["amount"].current?.value!), 
       memo: inputMemo.current?.value!
     }
-    console.log(changedData.memo);
     invoke("update_one_from_db", {changedRecord: changedData}).then(() => {
-      alert("Edit is completed.");
+      alert("編集が完了しました。");
       setInputEmpty();
       setMode("selectMode");
     }, (e) => {
       console.log(e);
-      alert("An error is occured: " + String(e));
+      alert("エラーが発生しました。エラーメッセージは以下の通りです。\n" + String(e));
     })
   }
-
+  // 出入金データ編集中止
   function cancelEdit() {
     setInputEmpty();
     setMode("selectMode");
   }
   
+  // フォームの要素
+  const inputs: {[key: string]: RefObject<HTMLInputElement>} = {};
+  ["id", "date", "category", "title", "amount"].forEach((value: string) => {
+    inputs[value] = useRef<HTMLInputElement>(null);
+  })
+  const inputMemo: RefObject<HTMLTextAreaElement> = useRef<HTMLTextAreaElement>(null);
+  // フォームのデフォルトの値
+  const inputDefaultValues: {[key: string]: string} = {};
+  const setInputDefaultValues: {[key: string]: React.Dispatch<React.SetStateAction<string>>} = {};
+  ["id", "date", "category", "title", "amount", "memo"].forEach((value: string) => {
+    [inputDefaultValues[value], setInputDefaultValues[value]] = useState<string>("");
+  })
+  // 現在のモード
+  const [mode, setMode] = useState<ModeOfEdit>("selectMode");
+  // このdisplayから遷移時の処理
+  props.displayHandler.onClose = async(): Promise<boolean> => {
+    if (mode === "selectMode") {
+      return true;
+    }
+    if (await confirm("編集を中止しますか？\n編集中のデータは破棄され、このデータは変更されません。")) {
+      cancelEdit();
+      return true;
+    } else {
+      return false;
+    }
+  };
+  // 出入金データ編集開始
+  props.specialFunctions.startEdit = startEdit;
+  
   return (
     <>
-      <div className="edit-buttons">
-        <button className="edit-button" onClick={startEdit.bind(window, Number(inputs["id"].current?.value))} disabled={mode !== "selectMode"}>編集</button>
-        <button className="edit-button" onClick={edit} disabled={mode != "editMode"}>変更</button>
-        <button className="edit-button" onClick={cancelEdit} disabled={mode != "editMode"}>キャンセル</button>
-      </div>
+      <EditButtons startEdit={startEdit} edit={edit} cancelEdit={cancelEdit} mode={mode} inputId={inputs["id"]}/>
       <div className="inputs-wrapper">
         <div className="input-row">
           <label className="input-label" htmlFor="id">id</label>

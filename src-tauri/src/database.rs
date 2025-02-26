@@ -22,16 +22,26 @@ pub async fn connect_db() -> ThisResult<Pool<MySql>> {
     // 環境変数からデータベースURLを取得
     let database_url: String = env::var("DATABASE_URL")
         .map_err(|e| {
-            let e: Error = Error::from_into_string(ErrorKinds::DataBaseError, "Failed to find env var \"DATABASE_URL\"", e);
-            error!("{}", e);
+            let e: Error = Error::from_into_string(
+                ErrorKinds::DataBaseError, 
+                "Failed to find env var \"DATABASE_URL\"", 
+                "データベースが設定されていません。開発者にお問い合わせください。", 
+                e
+            );
+            error!("{:?}", e);
             e
         })?;
     // データベースと通信
     let pool: Pool<MySql> = MySqlPool::connect(&database_url)
         .await
         .map_err(|e| {
-            let e: Error = Error::from_into_string(ErrorKinds::DataBaseError, "Failed to connect database", e);
-            error!("{}", e);
+            let e: Error = Error::from_into_string(
+                ErrorKinds::DataBaseError, 
+                "Failed to connect database", 
+                "データベースと通信できませんでした。データベースの状態を確認してください。", 
+                e
+            );
+            error!("{:?}", e);
             e
         })?;
     // logging
@@ -47,7 +57,7 @@ pub struct CashRecord {
     category: String, 
     title: String, 
     amount: usize, 
-    memo: String
+    memo: Option<String>
 }
 
 impl CashRecord {
@@ -60,8 +70,13 @@ impl CashRecord {
             .fetch_all(pool)
             .await
             .map_err(|e| {
-                let e: Error = Error::from_into_string(ErrorKinds::DataBaseError, "Failed to get data from db.", e);
-                error!("{}", e);
+                let e: Error = Error::from_into_string(
+                    ErrorKinds::DataBaseError, 
+                    "Failed to get data from db.", 
+                    "データの取得に失敗しました。", 
+                    e
+                );
+                error!("{:?}", e);
                 e
             })
     }
@@ -77,8 +92,13 @@ impl CashRecord {
                 match e {
                     sqlx::Error::RowNotFound => Ok(None), 
                     e => {
-                        let e: Error = Error::from_into_string(ErrorKinds::DataBaseError, "Failed to get data from db.", e);
-                        error!("{}", e);
+                        let e: Error = Error::from_into_string(
+                            ErrorKinds::DataBaseError, 
+                            "Failed to get data from db.", 
+                            "データの取得に失敗しました。", 
+                            e
+                        );
+                        error!("{:?}", e);
                         Err(e)
                     }
                 }
@@ -87,15 +107,23 @@ impl CashRecord {
 
     pub async fn read_db_from_month(pool: &Pool<MySql>, date: NaiveDate) -> ThisResult<Vec<CashRecord>> {
         let first_day_in_month: NaiveDate = NaiveDate::from_ymd_opt(date.year(), date.month(), 1).ok_or_else(|| {
-            let e: Error = Error::from_msg(ErrorKinds::DeveloperError, "Failed to get first day in the month.");
-            error!("{}", e);
+            let e: Error = Error::from_msg(
+                ErrorKinds::DeveloperError, 
+                "Failed to get first day in the month.", 
+                "日付の処理に失敗しました。開発者にお問い合わせください。"
+            );
+            error!("{:?}", e);
             e
         })?;
         let last_day_in_month: NaiveDate = {
             let (y, m): (i32, u32) = if date.month() == 12 { (date.year() + 1, date.month()) } else { (date.year(), date.month() + 1) };
             NaiveDate::from_ymd_opt(y, m, 1).map(|v| v.pred_opt()).flatten().ok_or_else(|| {
-                let e: Error = Error::from_msg(ErrorKinds::DeveloperError, "Failed to get first day in the month.");
-                error!("{}", e);
+                let e: Error = Error::from_msg(
+                    ErrorKinds::DeveloperError, 
+                    "Failed to get first day in the month.", 
+                    "日付の処理に失敗しました。開発者にお問い合わせください。"
+                );
+                error!("{:?}", e);
                 e
             })?
         };
@@ -107,71 +135,38 @@ impl CashRecord {
             .fetch_all(pool)
             .await
             .map_err(|e| {
-                let e: Error = Error::from_into_string(ErrorKinds::DataBaseError, "Failed to get data from db.", e);
-                error!("{}", e);
+                let e: Error = Error::from_into_string(
+                    ErrorKinds::DataBaseError, 
+                    "Failed to get data from db.", 
+                    "データの取得に失敗しました。", 
+                    e
+                );
+                error!("{:?}", e);
                 e
             })
     }
 
+    // インジェクションの防止
     pub async fn update_db_one(pool: &Pool<MySql>, changed_record: CashRecord) -> ThisResult<()> {
         sqlx::query(format!(
-            r#"UPDATE cash_record SET record_date="{}" WHERE id={}"#, 
+            r#"UPDATE cash_record SET record_date="{}", category="{}", title="{}", amount={}, memo="{}" WHERE id={}"#, 
             changed_record.date, 
-            changed_record.id
-        ).as_str())
-        .execute(pool)
-        .await
-        .map_err(|e| {
-            let e: Error = Error::from_into_string(ErrorKinds::DataBaseError, "Failed to update data from db.", e);
-            error!("{}", e);
-            e
-        })?;
-        sqlx::query(format!(
-            r#"UPDATE cash_record SET category="{}" WHERE id={}"#, 
             changed_record.category, 
-            changed_record.id
-        ).as_str())
-        .execute(pool)
-        .await
-        .map_err(|e| {
-            let e: Error = Error::from_into_string(ErrorKinds::DataBaseError, "Failed to update data from db.", e);
-            error!("{}", e);
-            e
-        })?;
-        sqlx::query(format!(
-            r#"UPDATE cash_record SET title="{}" WHERE id={}"#, 
-            changed_record.title,  
-            changed_record.id
-        ).as_str())
-        .execute(pool)
-        .await
-        .map_err(|e| {
-            let e: Error = Error::from_into_string(ErrorKinds::DataBaseError, "Failed to update data from db.", e);
-            error!("{}", e);
-            e
-        })?;
-        sqlx::query(format!(
-            r#"UPDATE cash_record SET amount={} WHERE id={}"#, 
+            changed_record.title, 
             changed_record.amount, 
+            changed_record.memo.unwrap_or_default(), 
             changed_record.id
         ).as_str())
         .execute(pool)
         .await
         .map_err(|e| {
-            let e: Error = Error::from_into_string(ErrorKinds::DataBaseError, "Failed to update data from db.", e);
-            error!("{}", e);
-            e
-        })?;
-        sqlx::query(format!(
-            r#"UPDATE cash_record SET memo={:?} WHERE id={}"#, 
-            if changed_record.memo.len() == 0 { String::from("null") } else { format!(r#"{}"#, changed_record.memo) }, 
-            changed_record.id
-        ).as_str())
-        .execute(pool)
-        .await
-        .map_err(|e| {
-            let e: Error = Error::from_into_string(ErrorKinds::DataBaseError, "Failed to update data from db.", e);
-            error!("{}", e);
+            let e: Error = Error::from_into_string(
+                ErrorKinds::DataBaseError, 
+                "Failed to update data from db.", 
+                "データの更新に失敗しました。", 
+                e
+            );
+            error!("{:?}", e);
             e
         })?;
         Ok(())
@@ -184,12 +179,12 @@ impl Serialize for CashRecord {
         where
             S: serde::Serializer {
         let mut s = serializer.serialize_struct("CsvData", 6)?;
-        s.serialize_field("id", &self.id).map_err(|e| { error!("{}", e); e })?;
-        s.serialize_field("date", &<NaiveDateWrapper as From<&NaiveDate>>::from(&self.date)).map_err(|e| { error!("{}", e); e })?;
-        s.serialize_field("category", &self.category).map_err(|e| { error!("{}", e); e })?;
-        s.serialize_field("title", &self.title).map_err(|e| { error!("{}", e); e })?;
-        s.serialize_field("amount", &self.amount).map_err(|e| { error!("{}", e); e })?;
-        s.serialize_field("memo", &self.memo).map_err(|e| { error!("{}", e); e })?;
+        s.serialize_field("id", &self.id).map_err(|e| { error!("{:?}", e); e })?;
+        s.serialize_field("date", &<NaiveDateWrapper as From<&NaiveDate>>::from(&self.date)).map_err(|e| { error!("{:?}", e); e })?;
+        s.serialize_field("category", &self.category).map_err(|e| { error!("{:?}", e); e })?;
+        s.serialize_field("title", &self.title).map_err(|e| { error!("{:?}", e); e })?;
+        s.serialize_field("amount", &self.amount).map_err(|e| { error!("{:?}", e); e })?;
+        s.serialize_field("memo", &self.memo).map_err(|e| { error!("{:?}", e); e })?;
         s.end()
     }
 }
@@ -220,95 +215,98 @@ impl<'de> Visitor<'de> for CashRecordVisitor {
         let mut category: Option<String> = None;
         let mut title: Option<String> = None;
         let mut amount: Option<usize> = None;
-        let mut memo: Option<String> = None;
+        let mut memo: Option<Option<String>> = None;
         while let Some(key) = map.next_key::<String>()? {
             match key.as_str() {
                 "id" => {
                     if id.is_some() {
                         let e = de::Error::duplicate_field("id");
-                        error!("{}", e);
+                        error!("{:?}", e);
                         return Err(e);
                     }
-                    id = Some(map.next_value::<usize>().map_err(|e| { error!("{}", e); e })?)
+                    id = Some(map.next_value::<usize>().map_err(|e| { error!("{:?}", e); e })?)
                 }, 
                 "date" => {
                     if date.is_some() {
                         let e = de::Error::duplicate_field("date");
-                        error!("{}", e);
+                        error!("{:?}", e);
                         return Err(e);
                     }
                     date = {
-                        let date = map.next_value::<NaiveDateWrapper>().map_err(|e| { error!("{}", e); e })?;
+                        let date = map.next_value::<NaiveDateWrapper>().map_err(|e| { error!("{:?}", e); e })?;
                         Some(<NaiveDateWrapper as Into<NaiveDate>>::into(date))
                     };
                 }, 
                 "category" => {
                     if category.is_some() {
                         let e = de::Error::duplicate_field("category");
-                        error!("{}", e);
+                        error!("{:?}", e);
                         return Err(e);
                     }
-                    category = Some(map.next_value::<String>().map_err(|e| { error!("{}", e); e })?)
+                    category = Some(map.next_value::<String>().map_err(|e| { error!("{:?}", e); e })?)
                 }, 
                 "title" => {
                     if title.is_some() {
                         let e = de::Error::duplicate_field("title");
-                        error!("{}", e);
+                        error!("{:?}", e);
                         return Err(e);
                     }
-                    title = Some(map.next_value::<String>().map_err(|e| { error!("{}", e); e })?)
+                    title = Some(map.next_value::<String>().map_err(|e| { error!("{:?}", e); e })?)
                 }, 
                 "amount" => {
                     if amount.is_some() {
                         let e = de::Error::duplicate_field("amount");
-                        error!("{}", e);
+                        error!("{:?}", e);
                         return Err(e);
                     }
-                    amount = Some(map.next_value::<usize>().map_err(|e| { error!("{}", e); e })?)
+                    amount = Some(map.next_value::<usize>().map_err(|e| { error!("{:?}", e); e })?)
                 }, 
                 "memo" => {
                     if memo.is_some() {
                         let e = de::Error::duplicate_field("memo");
-                        error!("{}", e);
+                        error!("{:?}", e);
                         return Err(e);
                     }
-                    memo = Some(map.next_value::<String>().map_err(|e| { error!("{}", e); e })?)
+                    memo = {
+                        let memo = map.next_value::<String>().map_err(|e| { error!("{:?}", e); e })?;
+                        Some(if memo.len() == 0 { None } else { Some(memo) })
+                    }
                 }, 
                 v => {
                     let e = de::Error::unknown_field(v, &Self::Value::FIELDS);
-                    error!("{}", e);
+                    error!("{:?}", e);
                     return Err(e);
                 }
             }
         };
         let id: usize = id.ok_or_else(|| {
             let e = de::Error::missing_field("id");
-            error!("{}", e);
+            error!("{:?}", e);
             e
         })?;
         let date: NaiveDate = date.ok_or_else(|| {
             let e = de::Error::missing_field("date");
-            error!("{}", e);
+            error!("{:?}", e);
             e
         })?;
         let category: String = category.ok_or_else(|| {
             let e = de::Error::missing_field("category");
-            error!("{}", e);
+            error!("{:?}", e);
             e
         })?;
         let title: String = title.ok_or_else(|| {
             let e = de::Error::missing_field("title");
-            error!("{}", e);
+            error!("{:?}", e);
             e
         })?;
         let amount: usize = amount.ok_or_else(|| {
             let e = de::Error::missing_field("amount");
-            error!("{}", e);
+            error!("{:?}", e);
             e
         })?;
-        let memo: String = memo.ok_or_else(|| {
+        let memo: Option<String> = memo.ok_or_else(|| {
             let e = de::Error::missing_field("memo");
-            error!("{}", e);
+            error!("{:?}", e);
             e
         })?;
         Ok(CashRecord { 
@@ -344,7 +342,7 @@ impl<'r, R> FromRow<'r, R> for CashRecord
             let amount: i32 = row.try_get::<'_, i32, _>("amount")?;
             <usize as TryFrom<i32>>::try_from(amount).map_err(|e| sqlx::Error::Decode(Box::new(e)))?
         };
-        let memo: String = row.try_get::<'_, Option<String>, _>("memo")?.unwrap_or_default();
+        let memo: Option<String> = row.try_get::<'_, Option<String>, _>("memo")?;
         Ok(CashRecord { 
             id, 
             date, 
@@ -417,7 +415,7 @@ impl<'de> Visitor<'de> for NaiveDateWrapperVisitor {
             E: de::Error, {
         let value: NaiveDate = NaiveDate::parse_from_str(v, "%Y-%m-%d").map_err(|e| {
             let e = de::Error::custom(&format!("Failed to deserialize string.({})", e));
-            error!("{}", e);
+            error!("{:?}", e);
             e
         })?;
         Ok(NaiveDateWrapper::ForDeserialize(value))
