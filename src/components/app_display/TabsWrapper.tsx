@@ -1,4 +1,5 @@
-import { isDisplayName, DisplayHandler, DisplayName, displayName } from "../../logic";
+import { DisplayHandler } from "../../logic";
+import { displayName, DisplayName, isDisplayName } from "./logic";
 
 // display群を切り替えるためのtab群
 function TabsWrapper(props: {displayHandlers: {[key in DisplayName]: DisplayHandler}, changeDisplay: (tab_name: DisplayName) => Promise<boolean>}) {

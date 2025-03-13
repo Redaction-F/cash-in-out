@@ -6,8 +6,6 @@
 use std::io::Write;
 use env_logger;
 
-extern crate cash_in_out;
-
 #[async_std::main]
 async fn main() {
     dotenv::dotenv().expect("Failed to read .env file");
@@ -19,11 +17,10 @@ async fn main() {
         .init();
     tauri::Builder::default()
         .invoke_handler(tauri::generate_handler![
-            cash_in_out::count_and_get_first, 
-            cash_in_out::first_get_from_db, 
-            cash_in_out::get_in_month_from_db, 
-            cash_in_out::get_one_from_db, 
-            cash_in_out::update_one_from_db
+            cash_in_out::get_records_by_month, 
+            cash_in_out::get_record_by_id, 
+            cash_in_out::update_record, 
+            cash_in_out::create_record
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

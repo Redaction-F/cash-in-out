@@ -49,6 +49,17 @@ pub async fn connect_db() -> ThisResult<Pool<MySql>> {
     Ok(pool)
 }
 
+fn remove_special_chars(value: &String) -> Result<String, String> {
+    let res: String = value.chars().filter(|c| {
+        !['\"', ';'].contains(c)
+    }).collect::<String>();
+    if res.len() == value.len() {
+        Ok(res)
+    } else {
+        Err(res)
+    }
+}
+
 // データベース一行分のデータ
 #[derive(Debug)]
 pub struct CashRecord {
@@ -63,29 +74,11 @@ pub struct CashRecord {
 impl CashRecord {
     const FIELDS: [&str; 6] = ["id", "date", "category", "title", "amount", "memo"];
 
-    // データベースをすべて読む
-    #[allow(dead_code)]
-    pub async fn read_db_all(pool: &Pool<MySql>) -> ThisResult<Vec<CashRecord>> {
-        sqlx::query_as::<_, CashRecord>(r#"SELECT * FROM cash_record;"#)
-            .fetch_all(pool)
-            .await
-            .map_err(|e| {
-                let e: Error = Error::from_into_string(
-                    ErrorKinds::DataBaseError, 
-                    "Failed to get data from db.", 
-                    "データの取得に失敗しました。", 
-                    e
-                );
-                error!("{:?}", e);
-                e
-            })
-    }
-
-    pub async fn read_db_from_id(pool: &Pool<MySql>, id: usize) -> ThisResult<Option<CashRecord>> {
+    pub async fn read_record_by_id(pool: &Pool<MySql>, id: usize) -> ThisResult<Option<CashRecord>> {
         sqlx::query_as::<_, CashRecord>(format!(
-                r#"SELECT * FROM cash_record WHERE id={};"#, 
-                id
-            ).as_str())
+            r#"SELECT * FROM cash_record WHERE id={};"#, 
+            id
+        ).as_str())
             .fetch_one(pool)
             .await
             .map_or_else(|e| {
@@ -105,7 +98,7 @@ impl CashRecord {
             }, |v| Ok(Some(v)))
     }
 
-    pub async fn read_db_from_month(pool: &Pool<MySql>, date: NaiveDate) -> ThisResult<Vec<CashRecord>> {
+    pub async fn read_records_by_month(pool: &Pool<MySql>, date: NaiveDate) -> ThisResult<Vec<CashRecord>> {
         let first_day_in_month: NaiveDate = NaiveDate::from_ymd_opt(date.year(), date.month(), 1).ok_or_else(|| {
             let e: Error = Error::from_msg(
                 ErrorKinds::DeveloperError, 
@@ -128,10 +121,10 @@ impl CashRecord {
             })?
         };
         sqlx::query_as::<_, CashRecord>(format!(
-                r#"SELECT * FROM cash_record WHERE record_date BETWEEN "{}" AND "{}";"#, 
-                first_day_in_month, 
-                last_day_in_month
-            ).as_str())
+            r#"SELECT * FROM cash_record WHERE record_date BETWEEN "{}" AND "{}";"#, 
+            first_day_in_month, 
+            last_day_in_month
+        ).as_str())
             .fetch_all(pool)
             .await
             .map_err(|e| {
@@ -146,29 +139,52 @@ impl CashRecord {
             })
     }
 
-    // インジェクションの防止
-    pub async fn update_db_one(pool: &Pool<MySql>, changed_record: CashRecord) -> ThisResult<()> {
+    pub async fn update_record(self, pool: &Pool<MySql>) -> ThisResult<()> {
         sqlx::query(format!(
             r#"UPDATE cash_record SET record_date="{}", category="{}", title="{}", amount={}, memo="{}" WHERE id={}"#, 
-            changed_record.date, 
-            changed_record.category, 
-            changed_record.title, 
-            changed_record.amount, 
-            changed_record.memo.unwrap_or_default(), 
-            changed_record.id
+            self.date, 
+            remove_special_chars(&self.category).unwrap_or_else(|err| { warn!("Category of the record({}) contains \'\"\'", self.category); err }), 
+            remove_special_chars(&self.title).unwrap_or_else(|err| { warn!("Title of the record({}) contains \'\"\'", self.title); err }), 
+            self.amount, 
+            (&self.memo).as_ref().map(|v| remove_special_chars(v).unwrap_or_else(|err| { warn!("Memo of the record({}) contains \'\"\'", v); err })).unwrap_or_default(), 
+            self.id
         ).as_str())
-        .execute(pool)
-        .await
-        .map_err(|e| {
-            let e: Error = Error::from_into_string(
-                ErrorKinds::DataBaseError, 
-                "Failed to update data from db.", 
-                "データの更新に失敗しました。", 
+            .execute(pool)
+            .await
+            .map_err(|e| {
+                let e: Error = Error::from_into_string(
+                    ErrorKinds::DataBaseError, 
+                    "Failed to update data from db.", 
+                    "データの更新に失敗しました。", 
+                    e
+                );
+                error!("{:?}", e);
                 e
-            );
-            error!("{:?}", e);
-            e
-        })?;
+            })?;
+        Ok(())
+    }
+
+    pub async fn create_record(self, pool: &Pool<MySql>) -> ThisResult<()> {
+        sqlx::query(format!(
+            r#"INSERT INTO cash_record (record_date, category, title, amount, memo) VALUES ("{}", "{}", "{}", {}, "{}");"#, 
+            self.date, 
+            remove_special_chars(&self.category).unwrap_or_else(|err| { warn!("Category of the record({}) contains \'\"\'", self.category); err }), 
+            remove_special_chars(&self.title).unwrap_or_else(|err| { warn!("Title of the record({}) contains \'\"\'", self.title); err }), 
+            self.amount, 
+            (&self.memo).as_ref().map(|v| remove_special_chars(v).unwrap_or_else(|err| { warn!("Memo of the record({}) contains \'\"\'", v); err })).unwrap_or_default(), 
+        ).as_str())
+            .execute(pool)
+            .await
+            .map_err(|e| {
+                let e: Error = Error::from_into_string(
+                    ErrorKinds::DataBaseError, 
+                    "Failed to create data from db.", 
+                    "データの作成に失敗しました。", 
+                    e
+                );
+                error!("{:?}", e);
+                e
+            })?;
         Ok(())
     }
 }
@@ -180,7 +196,7 @@ impl Serialize for CashRecord {
             S: serde::Serializer {
         let mut s = serializer.serialize_struct("CsvData", 6)?;
         s.serialize_field("id", &self.id).map_err(|e| { error!("{:?}", e); e })?;
-        s.serialize_field("date", &<NaiveDateWrapper as From<&NaiveDate>>::from(&self.date)).map_err(|e| { error!("{:?}", e); e })?;
+        s.serialize_field("date", &self.date).map_err(|e| { error!("{:?}", e); e })?;
         s.serialize_field("category", &self.category).map_err(|e| { error!("{:?}", e); e })?;
         s.serialize_field("title", &self.title).map_err(|e| { error!("{:?}", e); e })?;
         s.serialize_field("amount", &self.amount).map_err(|e| { error!("{:?}", e); e })?;
@@ -233,8 +249,8 @@ impl<'de> Visitor<'de> for CashRecordVisitor {
                         return Err(e);
                     }
                     date = {
-                        let date = map.next_value::<NaiveDateWrapper>().map_err(|e| { error!("{:?}", e); e })?;
-                        Some(<NaiveDateWrapper as Into<NaiveDate>>::into(date))
+                        let date = map.next_value::<NaiveDate>().map_err(|e| { error!("{:?}", e); e })?;
+                        Some(date)
                     };
                 }, 
                 "category" => {
@@ -351,73 +367,5 @@ impl<'r, R> FromRow<'r, R> for CashRecord
             amount, 
             memo 
         })
-    }
-}
-
-pub enum NaiveDateWrapper<'a> {
-    ForSerialize(&'a NaiveDate), 
-    ForDeserialize(NaiveDate)
-}
-
-impl NaiveDateWrapper<'_> {
-    const FORMATTER: &'static str = "%Y-%m-%d";
-}
-
-impl<'a> From<&'a NaiveDate> for NaiveDateWrapper<'a> {
-    fn from(value: &'a NaiveDate) -> Self {
-        NaiveDateWrapper::ForSerialize(value)
-    }
-}
-
-impl<'a> Into<NaiveDate> for NaiveDateWrapper<'a> {
-    fn into(self) -> NaiveDate {
-        match self {
-            NaiveDateWrapper::ForSerialize(&v) => {
-                warn!("Called <NaiveDateWrapper as Into<NaiveDate>>::into by ForSerializer.");
-                v
-            }, 
-            NaiveDateWrapper::ForDeserialize(v) => v
-        }
-    }
-}
-
-impl Serialize for NaiveDateWrapper<'_> {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-        where
-            S: serde::Serializer {
-        let value = match self {
-            NaiveDateWrapper::ForSerialize(v) => v, 
-            NaiveDateWrapper::ForDeserialize(v) => v
-        };
-        serializer.serialize_str(&value.format(NaiveDateWrapper::FORMATTER).to_string())
-    }
-}
-
-impl<'de> Deserialize<'de> for NaiveDateWrapper<'_> {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-        where
-            D: de::Deserializer<'de> {
-        deserializer.deserialize_string(NaiveDateWrapperVisitor)
-    }
-}
-
-struct NaiveDateWrapperVisitor;
-
-impl<'de> Visitor<'de> for NaiveDateWrapperVisitor {
-    type Value = NaiveDateWrapper<'static>;
-
-    fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
-        write!(formatter, "NaiveDate")
-    }
-
-    fn visit_str<E>(self, v: &str) -> Result<Self::Value, E>
-        where
-            E: de::Error, {
-        let value: NaiveDate = NaiveDate::parse_from_str(v, "%Y-%m-%d").map_err(|e| {
-            let e = de::Error::custom(&format!("Failed to deserialize string.({})", e));
-            error!("{:?}", e);
-            e
-        })?;
-        Ok(NaiveDateWrapper::ForDeserialize(value))
     }
 }

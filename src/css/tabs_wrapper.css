@@ -146,11 +146,11 @@
   }
 
   .tab-button:checked + .tab-label {
-    background-color: #2f2f2f;
+    background-color: #1f1f1f;
   }
 
   .tab.tab:has(.tab-button:checked)::before {
-    background-color: #2f2f2f;
+    background-color: #1f1f1f;
     border-left-color: #dfdfdf;
     border-right-color: #dfdfdf;
   }

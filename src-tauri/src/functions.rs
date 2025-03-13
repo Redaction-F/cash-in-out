@@ -1,44 +1,41 @@
-use chrono::{Local, NaiveDate};
+use chrono::NaiveDate;
 use sqlx::{MySql, Pool};
+use log::error;
 use crate::{
-    database::{connect_db, CashRecord, NaiveDateWrapper}, 
-    other::ThisResult
+    database::{connect_db, CashRecord}, 
+    other::{Error, ErrorKinds, ThisResult}
 };
 
-// Vec<bool>型の値のtrueの数を数える
 #[tauri::command]
-pub fn count_and_get_first(vec: Vec<(bool, usize)>) -> (usize, Option<usize>) {
-    let mut true_vec = vec.into_iter().filter(|&(v, _)| v);
-    true_vec.next().map_or_else(|| (0, None), |(_, v)| (true_vec.count() + 1, Some(v)))
-}
-
-#[tauri::command]
-pub async fn first_get_from_db() -> ThisResult<Vec<CashRecord>> {
+pub async fn get_records_by_month(year: usize, month: usize) -> ThisResult<Vec<CashRecord>> {
     // データベースと通信確立
     let pool: Pool<MySql> = connect_db().await?;
-    // データベースを今月分読む
-    CashRecord::read_db_from_month(&pool, Local::now().date_naive()).await
+    // データベースを指定分読む
+    CashRecord::read_records_by_month(&pool, NaiveDate::from_ymd_opt(year as i32, month as u32, 1).ok_or_else(|| {
+        let e: Error = Error::from_msg(ErrorKinds::DeveloperError, "Invaid year or month", "日付の解析に失敗しました。開発者にお問い合わせください。");
+        error!("{}", e);
+        e
+    })?).await
 }
 
 #[tauri::command]
-pub async fn get_in_month_from_db(date: NaiveDateWrapper<'_>) -> ThisResult<Vec<CashRecord>> {
-    // データベースと通信確立
-    let pool: Pool<MySql> = connect_db().await?;
-    // データベースを今月分読む
-    CashRecord::read_db_from_month(&pool, <NaiveDateWrapper as Into<NaiveDate>>::into(date)).await
-}
-
-#[tauri::command]
-pub async fn get_one_from_db(id: usize) -> ThisResult<Option<CashRecord>> {
+pub async fn get_record_by_id(id: usize) -> ThisResult<Option<CashRecord>> {
     // データベースと通信確立
     let pool: Pool<MySql> = connect_db().await?;
     // idからデータを選択
-    CashRecord::read_db_from_id(&pool, id).await
+    CashRecord::read_record_by_id(&pool, id).await
 }
 
 #[tauri::command]
-pub async fn update_one_from_db(changed_record: CashRecord) -> ThisResult<()> {
+pub async fn update_record(changed_record: CashRecord) -> ThisResult<()> {
     // データベースと通信確立
     let pool: Pool<MySql> = connect_db().await?;
-    CashRecord::update_db_one(&pool, changed_record).await
+    changed_record.update_record(&pool).await
+}
+
+#[tauri::command]
+pub async fn create_record(new_record: CashRecord) -> ThisResult<()> {
+    // データベースと通信確立
+    let pool: Pool<MySql> = connect_db().await?;
+    new_record.create_record(&pool).await
 }

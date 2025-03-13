@@ -1,3 +1,4 @@
+/* === For OptionButtons.tsx === */
 /* オプションボタンのラッパー */
 .option-buttons {
   /* 子要素を横並びに配置 */
@@ -41,7 +42,26 @@
   /* 透明度 */
   opacity: 0.3;
 }
+/* ====== */
 
+/* === For DropDown.tsx === */
+/* DropDownのラッパー */
+.dropdown-month-wrapper {
+  /* 外余白(下) */
+  margin-bottom: 2vh
+}
+
+.dropdown-month-select {
+  /* 背景色 */
+  background-color: #cfcfcf;
+  /* 高さ */
+  height: 5vh;
+  /* 幅 */
+  width: 100px;
+}
+/* ====== */
+
+/* === For Table.tsx === */
 /* 一か月分の表 */
 .one-month-table {
   /* 隣り合うボーダーの枠線を重ねる */
@@ -107,6 +127,7 @@
   /* 右揃え */
   text-align: right;
 }
+/* ====== */
 
 /* ダークモード */
 @media (prefers-color-scheme: dark) {
@@ -125,5 +146,9 @@
 
   .option-button:disabled {
     background-color: #4f4f4f;
+  }
+
+  .dropdown-month-select {
+    background-color: #3f3f3f;
   }
 }

@@ -1,48 +1,74 @@
 import { invoke } from "@tauri-apps/api/tauri";
-import { useState, useEffect } from "react";
-import Table from "./Table";
+import { useState, useEffect, useRef } from "react";
 import OptionButtons from "./OptionButtons";
-import { CashRecord, SpecialFunctions } from "../../logic";
+import DropDown from "./DropDown";
+import Table from "./Table";
+import { CashRecord, DisplayHandler, SpecialFunctions } from "../../logic";
+import { CheckedState, DropDownFunction } from "./logic";
 
 // data display
 // 出入金データの選択・表示
-function Data(props: {specialFunctions: SpecialFunctions}) {
+function Data(props: {displayHandler: DisplayHandler, specialFunctions: SpecialFunctions}) {
+  // 月を指定してデータベースからデータを読み込む
+  function setTableRowsByMonth(year: number, month: number) {
+    invoke<CashRecord[]>("get_records_by_month", {year: year, month: month}).then(setTableRows)
+  }
   // checkedRowsの更新
   function updateCheckedRows(index: number, value: boolean) {
-    setCheckedRows((prevState) => prevState.map((v, i) => i === index ? [value, v[1]] : v));
+    if (checkedStates.current[index].isChecked && !value) {
+      checkedStates.current[index].isChecked = false;
+      setCheckedCount((prev) => prev - 1);
+    } else if (!checkedStates.current[index].isChecked && value) {
+      checkedStates.current[index].isChecked = true;
+      setCheckedCount((prev) => prev + 1);
+    };
   };
+  // チェックされているもののうち最初の要素のidを取得する
+  function getFirstCheckedId(): number | null {
+    let checkedRows = checkedStates.current.filter((v) => v.isChecked);
+    if (checkedRows.length === 0) {
+      return null;
+    } else {
+      return checkedRows[0].id
+    }
+  }
 
   // 出入金データ全体
+  // useState: Table.tsxの表の再レンダリング
   const [tableRows, setTableRows] = useState<CashRecord[]>([]);
   // データがチェックされているか否かとid
-  const [checkedRows, setCheckedRows] = useState<[boolean, number][]>([]);
+  const checkedStates = useRef<CheckedState[]>([]);
   // チェックされているデータの数
+  // useState: OptionButton.tsxのボタンの再レンダリング
   const [checkedCount, setCheckedCount] = useState<number>(0);
-  // 最初のチェックされているデータ(ない場合はnull)
-  const [firstCheckedId, setFirstCheckedId] = useState<number | null>(null);
+  // 初回レンダリング判定
+  const firstRender = useRef<boolean>(true);
+  const dropDownFunction: DropDownFunction = {
+    updateTable: undefined
+  }
+  // このディスプレイに遷移時の処理
+  props.displayHandler.onOpen = () => dropDownFunction.updateTable!();
 
   // 初期化処理
   useEffect(() => {
-    invoke<CashRecord[]>("first_get_from_db").then(setTableRows);
+    if (firstRender.current) {
+      let today: Date = new Date();
+      setTableRowsByMonth(today.getFullYear(), today.getMonth() + 1);
+      firstRender.current = false;
+    }
   }, []);
-
   // tableRowsの更新時に実行
   useEffect(() => {
-    setCheckedRows(tableRows.map((value) => [false, value.id]));
+    checkedStates.current = tableRows.map((v) => ({
+      id: v.id, 
+      isChecked: false
+    }));
   }, [tableRows])
-
-  // checkedRowsの更新時に実行
-  useEffect(() => {
-    // checkedCount, firstCheckedIdの更新
-    invoke<[number, (number | null)]>("count_and_get_first", {vec: checkedRows}).then((v) => {
-      setCheckedCount(v[0]);
-      setFirstCheckedId(v[1]);
-    });
-  }, [checkedRows])
 
   return (
     <>
-      <OptionButtons checkedCount={checkedCount} firstCheckedId={firstCheckedId} specialFunctions={props.specialFunctions}/>
+      <OptionButtons checkedCount={checkedCount} getFirstCheckedId={getFirstCheckedId} specialFunctions={props.specialFunctions}/>
+      <DropDown dropDownFunction={dropDownFunction} setTableRowsFromMonth={setTableRowsByMonth} />
       <Table tableRows={tableRows} updateCheckedRow={updateCheckedRows}/>
     </>
   )

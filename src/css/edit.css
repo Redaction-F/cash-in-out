@@ -1,3 +1,50 @@
+/* === For EditButtons.tsx === */
+/* 編集ボタンラッパー */
+.edit-buttons {
+  /* 子要素を横並びに配置 */
+  display: flex;
+  /* 内余白(下) */
+  padding-bottom: 5vh;
+}
+
+/* 編集ボタン */
+.edit-button {
+  /* 背景色 */
+  background-color: #cfcfcf;
+  /* 枠 */
+  border: 1px solid;
+  /* 枠の色 */
+  border-color: #2f2f2f;
+  /* 高さ */
+  height: 5vh;
+  /* 幅 */
+  width: 10%;
+}
+
+/* 編集ボタン(ホバー時) */
+.edit-button:hover {
+  /* 背景色 */
+  background-color: #bfbfbf;
+}
+
+/* 編集ボタン(クリック時) */
+.edit-button:active {
+  /* 背景色 */
+  background-color: #dfdfdf;
+}
+
+/* 編集ボタン(非アクティブ時) */
+.edit-button:disabled {
+  /* 背景色 */
+  background-color: #cfcfcf;
+  /* カーソルを非アクティブに */
+  cursor: not-allowed;
+  /* 透明度 */
+  opacity: 0.3;
+}
+/* ====== */
+
+/* === For Inputs.tsx === */
 /* 入力項目 */
 .input-row {
   /* 子要素を横並びに配置 */
@@ -68,49 +115,10 @@
   background-color: #efefef;
 }
 
-/* 編集ボタンラッパー */
-.edit-buttons {
-  /* 子要素を横並びに配置 */
-  display: flex;
-  /* 内余白(下) */
-  padding-bottom: 5vh;
+.input-enter-button {
+  display: none;
 }
-
-/* 編集ボタン */
-.edit-button {
-  /* 背景色 */
-  background-color: #cfcfcf;
-  /* 枠 */
-  border: 1px solid;
-  /* 枠の色 */
-  border-color: #2f2f2f;
-  /* 高さ */
-  height: 5vh;
-  /* 幅 */
-  width: 10%;
-}
-
-/* 編集ボタン(ホバー時) */
-.edit-button:hover {
-  /* 背景色 */
-  background-color: #bfbfbf;
-}
-
-/* 編集ボタン(クリック時) */
-.edit-button:active {
-  /* 背景色 */
-  background-color: #dfdfdf;
-}
-
-/* 編集ボタン(非アクティブ時) */
-.edit-button:disabled {
-  /* 背景色 */
-  background-color: #cfcfcf;
-  /* カーソルを非アクティブに */
-  cursor: not-allowed;
-  /* 透明度 */
-  opacity: 0.3;
-}
+/* ====== */
 
 /* ダークモード */
 @media (prefers-color-scheme: dark) {
@@ -120,7 +128,7 @@
   }
   
   .input-input:disabled {
-    background-color: #2f2f2f;
+    background-color: #1f1f1f;
   }
 
   .input-textarea {
@@ -129,7 +137,7 @@
   }
 
   .input-textarea:disabled {
-    background-color: #2f2f2f;
+    background-color: #1f1f1f;
   }
 
   .edit-button {
