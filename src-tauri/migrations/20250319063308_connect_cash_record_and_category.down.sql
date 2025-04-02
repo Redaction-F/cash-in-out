@@ -1,4 +1,5 @@
--- Add up migration script here
+-- Add down migration script here
+DROP TABLE cash_record;
 CREATE TABLE cash_record (
     id INTEGER AUTO_INCREMENT PRIMARY KEY,
     record_date DATE NOT NULL, 

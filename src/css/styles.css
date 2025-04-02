@@ -7,30 +7,33 @@
   #bfbfbf #4f4f4f ボタン背景(ホバー時)
   #2f2f2f #dfdfdf 境界、テキスト
 
-  大きさはvhもしくは%で指定
+  大きさはvh, vwもしくは%で指定
   ただし枠線とそこに関わる部分はpxで指定
 */
 
 /* === For All === */
 :root {
+  --color-background: #efefef;
+  --color-content-1: #dfdfdf;
+  --color-content-2: #cfcfcf;
+  --color-content-3: #bfbfbf;
+  --color-text: #2f2f2f;
   /* 背景色 */
-  background-color: #efefef;
+  background-color: var(--color-background);
   /* スクロール不可 */
   overflow: hidden;
 }
 
 :root, button, input, textarea, select {
   /* フォント色 */
-  color: #2f2f2f;
+  color: var(--color-text);
   /* フォント */
-  /* Noto Sans JP: Google Fonts */
   /* Helvetica Neue: macOS,iOS 欧文 */
   /* Helvetica Sans: macOS,iOS 和文 */
   /* Arial: win 欧文 */
   /* Yu Gothic: win 和文 */
   /* sans-serif: 総称 */
   font-family: "Helvetica Neue", "Hiragino Sans", "Arial", "Yu Gothic", sans-serif;
-  /* font-family: "Noto Sans JP", "Helvetica Neue", "Hiragino Sans", "Arial", "Yu Gothic", sans-serif; */
   /* フォントの最適化 */
   font-optical-sizing: auto;
   /* フォントサイズ */
@@ -47,66 +50,13 @@
 }
 /* ====== */
 
-/* === For App.tsx === */
-/* 全体 */
-.container {
-  /* 子要素を中央揃えに配置(display: flex) */
-  align-items: flex-start;
-  /* 枠線 */
-  border: 2px solid;
-  /* 枠線の色 */
-  border-color: #2f2f2f;
-  /* heightにborder,paddingを含める */
-  box-sizing: border-box;
-  /* 子要素を横並びに配置(今回はalign-itemsとjustify-contentを適用するために使用) */
-  display: flex;
-  /* 子要素を縦に配置(display: flex) */
-  flex-direction: column;
-  /* 高さ */
-  /* margin-top + height + margin-bottom = 100vh */
-  height: 98vh;
-  /* 子要素を上詰めに配置(display: flex) */
-  justify-content: flex-start;
-  /* 外余白 */
-  margin: 1vh 1vw 1vh 1vw;
-  /* 内余白 */
-  padding: 2vh 2vw 2vh 2vw;
-}
-/* ====== */
-
-/* === For AppDisplay.tsx === */
-/* 各画面のラッパー */
-.displays {
-  /* 高さ */
-  /* container.padding-top + height + tab_wrapper.height + container.padding-buttom = container.height */
-  height: 80vh;
-  /* 幅 */
-  width: 100%;
-}
-
-/* 各画面 */
-.display {
-  /* 最初はすべて表示しない */
-  display: none;
-}
-
-/* 各画面 */
-.display-show {
-  /* 表示する画面にのみ付与 */
-  display: block;
-}
-/* ====== */
-
 /* ダークモード */
 @media (prefers-color-scheme: dark) {
   :root {
-    background-color: #1f1f1f;
-  }
-
-  :root, button, input, textarea, select {
-    color: #dfdfdf;
-  }
-  .container {
-    border-color: #dfdfdf;
+    --color-background: #1f1f1f;
+    --color-content-1: #2f2f2f;
+    --color-content-2: #3f3f3f;
+    --color-content-3: #4f4f4f;
+    --color-text: #dfdfdf;
   }
 }

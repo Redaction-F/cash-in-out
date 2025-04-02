@@ -2,12 +2,14 @@ import { useRef } from "react";
 import { DisplayHandler } from "../../logic";
 
 // displayの種類
-export const displayName = ["main", "data", "edit", "set"] as const;
-export type DisplayName = typeof displayName[number];
+export const displayNames = ["main", "data", "edit", "setting"] as const;
+export type DisplayName = typeof displayNames[number];
+const displayNamesSet: Set<string> = new Set(displayNames);
 // DisplayName判定
 export function isDisplayName(arg: string): arg is DisplayName {
-  return displayName.some((value) => value === arg);
+  return displayNamesSet.has(arg);
 }
+
 // デフォルトのHandler
 export function emptyHandler(): DisplayHandler {
   return {
@@ -16,6 +18,6 @@ export function emptyHandler(): DisplayHandler {
     onClose: async() => {
       return true
     },
-    onOpen: () => {},
+    onOpen: async () => {},
   };
 }

@@ -1,25 +1,31 @@
 import { DisplayHandler } from "../../logic";
-import { displayName, DisplayName, isDisplayName } from "./logic";
+import { displayNames, DisplayName, isDisplayName } from "./logic";
 
 // display群を切り替えるためのtab群
-function TabsWrapper(props: {displayHandlers: {[key in DisplayName]: DisplayHandler}, changeDisplay: (tab_name: DisplayName) => Promise<boolean>}) {
-  // tabのonChangeからdisplay切り替えをするためのラッパー
+function TabBar(props: {
+  displayHandlers: {[key in DisplayName]: DisplayHandler}, 
+  changeDisplay: (tab_name: DisplayName) => Promise<boolean>
+}) {
+  // tabのonChangeからdisplay切り替え
+  // onChangeに設定するHTMLInputElementのvalueはDisplayName型でないといけない
   function changeDisplayFromTab(event: React.ChangeEvent<HTMLInputElement>) {
     let value: string = event.target.value;
     if (isDisplayName(value)) {
       props.changeDisplay(value);
-    }
+    } else {
+      console.log("Developer Error: Tab name is invalid.");
+    };
   }
 
   return (
-    <div className="tabs-wrapper">
+    <div className="tabbar-wapper">
       {
-        displayName.map((value) => 
-          <div className="tab" key={value}>
+        displayNames.map((value) => 
+          <div className="tabbar-tab" key={value}>
             <input 
               // label関連付け用
               id={"tab-" + value} 
-              className="tab-button" 
+              className="tabbar-tab-button" 
               type="radio" 
               // 同nameを持つradioボタンのグループ化
               name="tab" 
@@ -27,10 +33,11 @@ function TabsWrapper(props: {displayHandlers: {[key in DisplayName]: DisplayHand
               // 変更時処理
               onChange={changeDisplayFromTab} 
               // AppDisplayに渡すref
-              ref={props.displayHandlers[value].tab} 
+              ref={props.displayHandlers[value].tab}
+              // mainのみtrue、それ以外はfalse
               defaultChecked={value === "main"}
             />
-            <label className="tab-label" htmlFor={"tab-" + value}>
+            <label className="tabbar-tab-label" htmlFor={"tab-" + value}>
               {
                 value === "main" 
                   ? "メイン" 
@@ -48,4 +55,4 @@ function TabsWrapper(props: {displayHandlers: {[key in DisplayName]: DisplayHand
   )
 }
 
-export default TabsWrapper;
+export default TabBar;

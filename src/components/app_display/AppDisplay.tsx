@@ -1,11 +1,12 @@
-import { useState } from "react";
+import { useRef } from "react";
 import Displays from "./Displays";
-import TabsWrapper from "./TabsWrapper";
+import TabBar from "./TabBar";
 import { DisplayHandler, SpecialFunctions } from "../../logic";
 import { DisplayName, emptyHandler } from "./logic";
 
 // 画面全体
 function AppDisplay() {
+  // display切り替え
   function changeDisplaySimple(preTab: DisplayName, nextTab: DisplayName) {
     // tabを切り替える
     displayHandlers[preTab].tab.current!.checked = false;
@@ -14,21 +15,22 @@ function AppDisplay() {
     displayHandlers[preTab].content.current?.classList.remove("display-show");
     displayHandlers[nextTab].content.current?.classList.add("display-show");
   }
-  // display切り替え用
+  // display切り替え(処理付き)
   async function changeDisplay(tabName: DisplayName): Promise<boolean> {
-    if (tabName == currentTab) {
+    // 切り替える必要がなければ終わる
+    if (tabName == currentTab.current) {
       return false;
     }
     // 一度戻す
-    changeDisplaySimple(tabName, currentTab);
+    changeDisplaySimple(tabName, currentTab.current);
     // close時の処理を実行、closeの許可が出るまで待機
-    if (await displayHandlers[currentTab].onClose()) {
-      // 切り替える
-      changeDisplaySimple(currentTab, tabName);
+    if (await displayHandlers[currentTab.current].onClose()) {
       // open時の処理を実行
-      displayHandlers[tabName].onOpen();
+      await displayHandlers[tabName].onOpen();
+      // 切り替える
+      changeDisplaySimple(currentTab.current, tabName);
       // 現在表示中のtabを更新
-      setCurrentTab(tabName);
+      currentTab.current = tabName;
       return true;
     } else {
       return false;
@@ -36,14 +38,13 @@ function AppDisplay() {
   };
   
   // 現在表示中のdisplay
-  // useState: displayの切り替え
-  const [currentTab, setCurrentTab] = useState<DisplayName>("main");
+  const currentTab = useRef<DisplayName>("main");
   // 各displayのDisplayHandler
   const displayHandlers: {[key in DisplayName]: DisplayHandler} = {
     main: emptyHandler(), 
     data: emptyHandler(), 
     edit: emptyHandler(), 
-    set: emptyHandler()
+    setting: emptyHandler()
   };
   // 全体共有用の関数群
   const specialFunctions: SpecialFunctions = {
@@ -51,6 +52,7 @@ function AppDisplay() {
     startEdit: undefined, 
     startCreate: undefined
   };
+  
   // specicalFunctionを設定
   specialFunctions.changeDisplay = changeDisplay;
 
@@ -59,7 +61,7 @@ function AppDisplay() {
       {/* display群 */}
       <Displays displayHandlers={displayHandlers} specialFunctions={specialFunctions} />
       {/* tab群 */}
-      <TabsWrapper displayHandlers={displayHandlers} changeDisplay={changeDisplay} />
+      <TabBar displayHandlers={displayHandlers} changeDisplay={changeDisplay} />
     </>
   )
 }

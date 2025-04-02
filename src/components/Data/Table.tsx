@@ -1,11 +1,42 @@
-import { CashRecord } from "../../logic";
+import { useEffect, useRef, useState } from "react";
+import { CashIORecord } from "../../logic";
+import { CheckedStates, getCashIORecoByMonth, OptionButtonsFunctions, SelectMonth, SelectYear, TableFunctions } from "./logic";
 
 // data displayの出入金データ表
-function Table(props: {tableRows: CashRecord[], updateCheckedRow: (index: number, value: boolean) => void}) {
+function Table(props: {
+  tableFunctions: TableFunctions, 
+  optionButtonsFunctions: OptionButtonsFunctions
+}) {
+  // 表の更新
+  function setTableRows(newTableRows: CashIORecord[]) {
+    tableRows.current = newTableRows;
+    setRenderTable((prev) => 1 - prev);
+  }
+  // 月を指定してデータベースからデータを読み込む
+  async function setTableRowsByMonth(year: SelectYear, month: SelectMonth) {
+    setTableRows(await getCashIORecoByMonth(year, month));
+  }
   // 各行のチェックボックスのonChangeでeventからとれるようにラップ
   function updateCheckedRowWrap(index: number, event: React.ChangeEvent<HTMLInputElement>) {
-    props.updateCheckedRow(index, event.target.checked)
+    checkedStates.current.update(index, event.target.checked, props.optionButtonsFunctions)
   }
+
+  // 出入金データ全体
+  const tableRows = useRef<CashIORecord[]>([]);
+  // データがチェックされているか否かとid
+  const checkedStates = useRef<CheckedStates>(new CheckedStates());
+  // tableRowsの更新時に更新
+  // useState: Table.tsxの表の再レンダリング
+  const [renderTable, setRenderTable] = useState<number>(0);
+
+  // tableFunctionsの初期化
+  props.tableFunctions.setTableRows = setTableRows;
+  props.tableFunctions.setTableRowsByMonth = setTableRowsByMonth;
+  props.tableFunctions.getFirstCheckedId = () => checkedStates.current.getFirstCheckedId();
+  // tableRowsの更新時に実行
+  useEffect(() => {
+    checkedStates.current.init(tableRows.current, props.optionButtonsFunctions);
+  }, [renderTable])
 
   return(
     <table className="one-month-table">
@@ -33,9 +64,9 @@ function Table(props: {tableRows: CashRecord[], updateCheckedRow: (index: number
           </th>
         </tr>
       </thead>
-      <tbody>
+      <tbody key={renderTable}>
         {
-          props.tableRows.map((tableRow, index) => 
+          tableRows.current.map((tableRow, index) => 
             // 一行
             <tr key={tableRow.id}>
               <th scope="row">
@@ -47,8 +78,8 @@ function Table(props: {tableRows: CashRecord[], updateCheckedRow: (index: number
               <td>
                 {tableRow.date}
               </td>
-              <td>
-                {tableRow.category}
+              <td title={tableRow.mainCategory + "/" + tableRow.subCategory}>
+                {tableRow.mainCategory + "/" + tableRow.subCategory}
               </td>
               <td>
                 {tableRow.title}

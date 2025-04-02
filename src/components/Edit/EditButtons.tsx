@@ -1,33 +1,38 @@
 import { invoke } from "@tauri-apps/api";
-import { CashRecord, SpecialFunctions } from "../../logic";
-import { EditFunctions, InputGetterSetter, ModeOfEdit } from "./logic";
+import { CashIORecord, SpecialFunctions } from "../../logic";
+import { EditFunctions, InputsFunctions, ModeOfEdit } from "./logic";
 
-function EditButtons(props: {mode: ModeOfEdit, editFunctions: EditFunctions, setModeWrapper: (value: ModeOfEdit) => void, inputGetterSetter: InputGetterSetter, specialFunctions: SpecialFunctions}) {
+function EditButtons(props: {
+  mode: ModeOfEdit, 
+  setModeWrapper: (value: ModeOfEdit) => void, 
+  editFunctions: EditFunctions, 
+  inputsFunctions: InputsFunctions, 
+  specialFunctions: SpecialFunctions
+}) {
   // 出入金データ新規作成開始
   function startCreate() {
     props.setModeWrapper("createMode");
   }
   // 出入金データ編集開始
-  function startEdit(id: number | null) {
+  async function startEdit(id: number | null) {
     if (id === null) {
       alert("IDを入力して下さい。");
       return;
     }
-    invoke<CashRecord | null>("get_record_by_id", {id: id}).then((value: CashRecord | null) => {
-      if (value === null) {
-        alert("入力されたIDのデータは存在しません。\n存在するデータのIDを入力するか、データ一覧から選択して編集してください。");
-      } else {
-        props.inputGetterSetter.set!(value);
-        props.setModeWrapper("updateMode");
-      }
-    })
+    let records = await invoke<CashIORecord | null>("get_record_by_id", {id: id})
+    if (records === null) {
+      alert("入力されたIDのデータは存在しません。\n存在するデータのIDを入力するか、データ一覧から選択して編集してください。");
+    } else {
+      props.inputsFunctions.set!(records);
+      props.setModeWrapper("updateMode");
+    }
   }
   // 出入金データ新規作成
-  function doCreate() {
-    let newData: CashRecord = props.inputGetterSetter.get!();
-    invoke("create_record", {newRecord: newData}).then(() => {
+  async function doCreate() {
+    let newData: CashIORecord = props.inputsFunctions.get!();
+    invoke<void>("create_record", {newRecord: newData}).then(() => {
       alert("新規作成が完了しました。");
-      props.inputGetterSetter.setEmpty!();
+      props.inputsFunctions.setEmpty!();
       props.setModeWrapper("selectMode");
     }, (e) => {
       console.log(e);
@@ -35,11 +40,11 @@ function EditButtons(props: {mode: ModeOfEdit, editFunctions: EditFunctions, set
     })
   }
   // 出入金データ更新
-  function doUpdate() {
-    let changedData: CashRecord = props.inputGetterSetter.get!();
-    invoke("update_record", {changedRecord: changedData}).then(() => {
+  async function doUpdate() {
+    let changedData: CashIORecord = props.inputsFunctions.get!();
+    invoke<void>("update_record", {changedRecord: changedData}).then(() => {
       alert("編集が完了しました。");
-      props.inputGetterSetter.setEmpty!();
+      props.inputsFunctions.setEmpty!();
       props.setModeWrapper("selectMode");
     }, (e) => {
       console.log(e);
@@ -48,12 +53,12 @@ function EditButtons(props: {mode: ModeOfEdit, editFunctions: EditFunctions, set
   }
   // 出入金データ編集中止
   function cancelEdit() {
-    props.inputGetterSetter.setEmpty!();
+    props.inputsFunctions.setEmpty!();
     props.setModeWrapper("selectMode");
   }
   // IDフォームの内容から編集開始
   function startEditById() {
-    startEdit(props.inputGetterSetter.getId!())
+    startEdit(props.inputsFunctions.getId!())
   }
 
   // editFunctionsの設定

@@ -9,18 +9,10 @@ export type SpecialFunctions = {
   // display切り替え
   changeDisplay: ((displayName: DisplayName) => Promise<boolean>) | undefined, 
   // edit displayで編集を開始
-  startEdit: ((id: number | null) => void) | undefined, 
+  startEdit: ((id: number | null) => Promise<void>) | undefined, 
   startCreate: (() => void) | undefined
 }
-// 出入金1単位
-export type CashRecord = {
-  id: number, 
-  date: string, 
-  category: string, 
-  title: string, 
-  amount: number, 
-  memo: string
-};
+
 // displayの操作用
 export type DisplayHandler = {
   // displayであるdivタグの要素
@@ -30,6 +22,25 @@ export type DisplayHandler = {
   // このdisplayから遷移するときの処理
   // 返り値は遷移可能か否か
   onClose: () => Promise<boolean>, 
-  // このdisplayに線にするときの処理
-  onOpen: () => void
+  // このdisplayに遷移にするときの処理
+  onOpen: () => Promise<void>
 }
+
+// 出入金1単位の項目
+export const cashIORecordFields = ["id", "date", "mainCategory", "subCategory", "title", "amount", "memo"] as const;
+export type CashIORecordField = typeof cashIORecordFields[number];
+const cashIORecordFieldSet: Set<string> = new Set(cashIORecordFields);
+// InputKind判定
+export function isCashIORecordField(arg: string): arg is CashIORecordField {
+  return cashIORecordFieldSet.has(arg);
+}
+// 出入金1単位
+export type CashIORecord = {
+  id: number, 
+  date: string, 
+  mainCategory: string, 
+  subCategory: string, 
+  title: string, 
+  amount: number, 
+  memo: string
+};

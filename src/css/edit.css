@@ -10,11 +10,11 @@
 /* 編集ボタン */
 .edit-button {
   /* 背景色 */
-  background-color: #cfcfcf;
+  background-color: var(--color-content-2);
   /* 枠 */
   border: 1px solid;
   /* 枠の色 */
-  border-color: #2f2f2f;
+  border-color: var(--color-text);
   /* 高さ */
   height: 5vh;
   /* 幅 */
@@ -24,19 +24,19 @@
 /* 編集ボタン(ホバー時) */
 .edit-button:hover {
   /* 背景色 */
-  background-color: #bfbfbf;
+  background-color: var(--color-content-3);
 }
 
 /* 編集ボタン(クリック時) */
 .edit-button:active {
   /* 背景色 */
-  background-color: #dfdfdf;
+  background-color: var(--color-content-1);
 }
 
 /* 編集ボタン(非アクティブ時) */
 .edit-button:disabled {
   /* 背景色 */
-  background-color: #cfcfcf;
+  background-color: var(--color-content-2);
   /* カーソルを非アクティブに */
   cursor: not-allowed;
   /* 透明度 */
@@ -66,13 +66,13 @@
 /* 入力部分 */
 .input-input {
   /* 背景色 */
-  background-color: #cfcfcf;
+  background-color: var(--color-content-2);
   /* 枠 */
   border: 0px;
   /* 枠(下) */
   border-bottom: 1px solid;
   /* 枠(下)の色 */
-  border-bottom-color: #2f2f2f;
+  border-bottom-color: var(--color-text);
   /* 内余白 */
   padding: 0 1% 0 1%;
   /* 幅 */
@@ -82,7 +82,9 @@
 /* 入力部分(非アクティブ時) */
 .input-input:disabled {
   /* 背景色 */
-  background-color: #efefef;
+  background-color: var(--color-background);
+  /* テキスト色 */
+  color: var(--color-background);
 }
 
 /* 数字入力のスピンボタンを消す */
@@ -94,13 +96,13 @@
 /* テキスト入力部分 */
 .input-textarea {
   /* 背景色 */
-  background-color: #cfcfcf;
+  background-color: var(--color-content-2);
   /* 枠 */
   border: 0px;
   /* 枠(下) */
   border-bottom: 1px solid;
   /* 枠(下)の色 */
-  border-bottom-color: #2f2f2f;
+  border-bottom-color: var(--color-text);
   /* 高さ */
   height: 15vh;
   /* 内余白 */
@@ -112,48 +114,10 @@
 /* テキスト入力時(非アクティブ時) */
 .input-textarea:disabled {
   /* 背景色 */
-  background-color: #efefef;
+  background-color: var(--color-background);
 }
 
 .input-enter-button {
   display: none;
 }
 /* ====== */
-
-/* ダークモード */
-@media (prefers-color-scheme: dark) {
-  .input-input {
-    background-color: #4f4f4f;
-    border-bottom-color: #dfdfdf;
-  }
-  
-  .input-input:disabled {
-    background-color: #1f1f1f;
-  }
-
-  .input-textarea {
-    background-color: #4f4f4f;
-    border-bottom-color: #dfdfdf;
-  }
-
-  .input-textarea:disabled {
-    background-color: #1f1f1f;
-  }
-
-  .edit-button {
-    background-color: #4f4f4f;
-    border-color: #dfdfdf;
-  }
-
-  .edit-button:hover {
-    background-color: #5f5f5f;
-  }
-
-  .edit-button:active {
-    background-color: #3f3f3f;
-  }
-
-  .edit-button:disabled {
-    background-color: #4f4f4f;
-  }
-}

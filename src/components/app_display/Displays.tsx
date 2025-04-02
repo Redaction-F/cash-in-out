@@ -1,14 +1,18 @@
 import Data from "../data/Data";
 import Edit from "../edit/Edit";
+import Setting from "../setting/Setting";
 import { DisplayHandler, SpecialFunctions } from "../../logic";
-import { displayName, DisplayName } from "./logic";
+import { displayNames, DisplayName } from "./logic";
 
 // タブによって切り替え可能なdisplay群
-function Displays(props: {displayHandlers: {[key in DisplayName]: DisplayHandler}, specialFunctions: SpecialFunctions}) {
+function Displays(props: {
+  displayHandlers: {[key in DisplayName]: DisplayHandler}, 
+  specialFunctions: SpecialFunctions
+}) {
   return (
     <div className="displays">
       {
-        displayName.map((value) => 
+        displayNames.map((value) => 
           <div 
             id={"display-" + value} 
             // mainのみ"display display-show"、それ以外は"display"
@@ -23,7 +27,7 @@ function Displays(props: {displayHandlers: {[key in DisplayName]: DisplayHandler
               ? <Data displayHandler={props.displayHandlers["data"]} specialFunctions={props.specialFunctions}/>
               : value === "edit"
               ? <Edit displayHandler={props.displayHandlers["edit"]} specialFunctions={props.specialFunctions}/>
-              : "設定"
+              : <Setting displayHandler={props.displayHandlers["setting"]}/>
             }
           </div>
         )

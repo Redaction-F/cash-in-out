@@ -1,0 +1,81 @@
+.setting-section {
+  margin-bottom: 5vh;
+}
+
+/* 項目 */
+.setting-row {
+  /* 子要素を横並びに配置 */
+  display: flex;
+  /* 外余白 */
+  margin: 2vh 1% 2vh 1%;
+}
+
+/* 項目ラベル */
+.setting-label {
+  /* クリックで入力に移れる */
+  cursor: pointer;
+  /* flexbox内に配置できる */
+  display: block;
+  /* 幅 */
+  width: 25%;
+}
+
+/* 入力部分 */
+.setting-input {
+  /* 背景色 */
+  background-color: var(--color-content-2);
+  /* 枠 */
+  border: 0px;
+  /* 枠(下) */
+  border-bottom: 1px solid;
+  /* 枠(下)の色 */
+  border-bottom-color: var(--color-text);
+  /* 幅 */
+  width: 75%;
+}
+
+/* 各オプションボタン */
+.setting-button {
+  /* 背景色 */
+  background-color: var(--color-content-2);
+  /* 枠線 */
+  border: 1px solid ;
+  /* 枠線の色 */
+  border-color: var(--color-text);
+  /* 高さ */
+  height: 5vh;
+  /* 幅 */
+  width: 10%;
+}
+
+/* 各オプションボタン(ホバー時) */
+.setting-button:hover {
+  /* 背景色 */
+  background-color: var(--color-content-3);
+}
+
+/* 各オプションボタン(クリック時) */
+.setting-button:active {
+  /* 背景色 */
+  background-color: var(--color-content-1);
+}
+
+/* 各オプションボタン(非アクティブ時) */
+.setting-button:disabled {
+  /* 背景色 */
+  background-color: var(--color-content-2);
+  /* カーソルを非アクティブに */
+  cursor: not-allowed;
+  /* 透明度 */
+  opacity: 0.3;
+}
+
+/* ドロップダウン */
+.setting-select {
+  /* 背景色 */
+  background-color: var(--color-content-2);
+  /* 高さ */
+  height: 5vh;
+  /* 幅 */
+  width: 100px;
+}
