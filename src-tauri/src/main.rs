@@ -21,6 +21,7 @@ async fn main() {
             cash_in_out::get_record_by_id, 
             cash_in_out::update_record, 
             cash_in_out::create_record, 
+            cash_in_out::delete_record_by_id, 
             cash_in_out::get_all_categorys, 
             cash_in_out::add_main_category, 
             cash_in_out::remove_main_category, 

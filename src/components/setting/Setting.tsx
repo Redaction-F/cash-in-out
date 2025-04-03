@@ -14,7 +14,7 @@ function Setting(props: {
 
   // settingのdisplayHandlerの初期化
   props.displayHandler.onOpen = async () => {
-    categoryFunctions.reloadCategorySetting!()
+    await categoryFunctions.reloadCategorySetting!()
   };
 
   return (

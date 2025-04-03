@@ -36,7 +36,7 @@ impl CashIORecord {
     // field群
     const FIELDS: [&'static str; 9] = ["id", "date", "main_category", "sub_category", "title", "amount", "memo", "created_at", "updated_at"];
     // CashIORecordを取得するSQL文
-    const SQL_SENTENCE: &'static str = "SELECT 
+    const SELECT_SQL: &'static str = "SELECT 
             cash_record.id, 
             cash_record.record_date, 
             main_category.name As main_category_name, 
@@ -55,7 +55,7 @@ impl CashIORecord {
     pub async fn read_by_id(pool: &Pool<MySql>, id: usize) -> ThisResult<Option<CashIORecord>> {
         sqlx::query_as::<_, CashIORecord>(format!(
             r#"{} WHERE cash_record.id={};"#, 
-            CashIORecord::SQL_SENTENCE, 
+            CashIORecord::SELECT_SQL, 
             id
         ).as_str())
             .fetch_one(pool)
@@ -102,7 +102,7 @@ impl CashIORecord {
         };
         sqlx::query_as::<_, CashIORecord>(format!(
             r#"{} WHERE cash_record.record_date BETWEEN "{}" AND "{}";"#, 
-            CashIORecord::SQL_SENTENCE, 
+            CashIORecord::SELECT_SQL, 
             first_day_in_month, 
             last_day_in_month
         ).as_str())
@@ -196,6 +196,26 @@ impl CashIORecord {
                     ErrorKinds::DataBaseError, 
                     "Failed to create CashIORecord on database.", 
                     "データの作成に失敗しました。", 
+                    e
+                );
+                error!("{:?}", e);
+                e
+            })?;
+        Ok(())
+    }
+
+    pub async fn delete(self, pool: &Pool<MySql>) -> ThisResult<()> {
+        sqlx::query(format!(
+            r#"DELETE FROM cash_record WHERE id={}"#, 
+            self.id
+        ).as_str())
+            .execute(pool)
+            .await
+            .map_err(|e| {
+                let e = Error::from_into_string(
+                    ErrorKinds::DataBaseError, 
+                    "Failed to delete CashIORecord on database.", 
+                    "データの削除に失敗しました。", 
                     e
                 );
                 error!("{:?}", e);

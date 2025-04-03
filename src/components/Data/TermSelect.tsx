@@ -29,7 +29,7 @@ function TermSelect(props: {
     if (month === null) {
       return;
     }
-    await props.tableFunctions.setTableRowsByMonth!(getYear(), month);
+    await props.tableFunctions.setByMonth!(getYear(), month);
   }
 
   // 日付データ
@@ -47,38 +47,42 @@ function TermSelect(props: {
   const [renderMonthSelect, setMonthRenderSelect] = useState<number>(0);
 
   // termSelectFunctionsの初期化
-  props.termSelectFunctions.init = () => {
+  props.termSelectFunctions.reload = () => {
     setYearRenderSelect((prev) => 1 - prev);
     setMonthLen(today.getMonth() + 1);
   };
 
   return (
     <div className="dropdown-term-wrapper">
-      <select 
-        id="year" 
-        className="dropdown-term-select" 
-        onChange={onUpdateOfYear} 
-        defaultValue={today.getFullYear()} 
-        key={renderYearSelect} 
-        ref={yearSelect}
-      >
-        {
-          SelectYear.yearArray().map((v) => <option value={v} key={v}>{String(v) + "年"}</option>)
-        }
-      </select>
-      <select 
-        id="month" 
-        className="dropdown-term-select" 
-        onChange={onUpdateOfMonth} 
-        defaultValue={String(monthLen.current)} 
-        key={renderMonthSelect + 2} 
-        ref={monthSelect}
-      >
-        <option value={"null"}>-</option>
-        {
-          (new Array(monthLen.current)).fill(0).map((_, i) => <option value={String(i + 1)} key={i}>{String(i + 1) + "月"}</option>)
-        }
-      </select>
+      <>
+        <select 
+          id="year" 
+          className="dropdown-term-select" 
+          onChange={onUpdateOfYear} 
+          defaultValue={today.getFullYear()} 
+          key={renderYearSelect} 
+          ref={yearSelect}
+        >
+          {
+            SelectYear.yearArray().map((v) => <option value={v} key={v}>{String(v) + "年"}</option>)
+          }
+        </select>
+      </>
+      <>
+        <select 
+          id="month" 
+          className="dropdown-term-select" 
+          onChange={onUpdateOfMonth} 
+          defaultValue={String(monthLen.current)} 
+          key={renderMonthSelect} 
+          ref={monthSelect}
+        >
+          <option value={"null"}>-</option>
+          {
+            (new Array(monthLen.current)).fill(0).map((_, i) => <option value={String(i + 1)} key={i}>{String(i + 1) + "月"}</option>)
+          }
+        </select>
+      </>
     </div>
   )
 }

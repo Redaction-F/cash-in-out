@@ -30,7 +30,7 @@ function EditButtons(props: {
   // 出入金データ新規作成
   async function doCreate() {
     let newData: CashIORecord = props.inputsFunctions.get!();
-    invoke<void>("create_record", {newRecord: newData}).then(() => {
+    await invoke<void>("create_record", {newRecord: newData}).then(() => {
       alert("新規作成が完了しました。");
       props.inputsFunctions.setEmpty!();
       props.setModeWrapper("selectMode");
@@ -42,7 +42,7 @@ function EditButtons(props: {
   // 出入金データ更新
   async function doUpdate() {
     let changedData: CashIORecord = props.inputsFunctions.get!();
-    invoke<void>("update_record", {changedRecord: changedData}).then(() => {
+    await invoke<void>("update_record", {changedRecord: changedData}).then(() => {
       alert("編集が完了しました。");
       props.inputsFunctions.setEmpty!();
       props.setModeWrapper("selectMode");

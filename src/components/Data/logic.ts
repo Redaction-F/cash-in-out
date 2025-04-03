@@ -1,16 +1,21 @@
 import { invoke } from "@tauri-apps/api";
 import { CashIORecord } from "../../logic";
 
+// Data.tsxが提供する関数群
+export type dataFunctions = {
+  init: (() => Promise<void>) | undefined
+}
+
 // Table.tsxが提供する関数群
 export type TableFunctions = {
-  setTableRows: ((value: CashIORecord[]) => void) | undefined, 
-  setTableRowsByMonth: ((year: SelectYear, month: SelectMonth) => Promise<void>) | undefined, 
-  getFirstCheckedId: (() => number | null) | undefined, 
+  set: ((value: CashIORecord[]) => void) | undefined, 
+  setByMonth: ((year: SelectYear, month: SelectMonth) => Promise<void>) | undefined, 
+  getCheckedId: (() => number[]) | undefined, 
 }
 
 // TermSelect.tsxが提供する関数群
 export type TermSelectFunctions = {
-  init: (() => void) | undefined
+  reload: (() => void) | undefined
 }
 
 // OptionButtons.tsxが提供する関数群
@@ -69,13 +74,8 @@ export class CheckedStates {
     };
   }
 
-  getFirstCheckedId(): number | null {
-    let checkedRows = this._value.filter((v) => v.isChecked);
-    if (checkedRows.length === 0) {
-      return null;
-    } else {
-      return checkedRows[0].id
-    }
+  getCheckedId(): number[] {
+    return this._value.filter((v) => v.isChecked).map(v => v.id);
   }
 }
 

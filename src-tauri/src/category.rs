@@ -25,7 +25,7 @@ pub struct Category {
 
 #[allow(dead_code)]
 impl Category {
-    const SQL_SENTENCE: &str = "SELECT 
+    const SELECT_SQL: &str = "SELECT 
             main_category.id As main_id, 
             main_category.name As main_name, 
             main_category.created_at As main_created_at, 
@@ -77,7 +77,7 @@ impl Category {
     async fn read_all(pool: &Pool<MySql>) -> ThisResult<Vec<Category>> {
         sqlx::query_as::<_, Category>(format!(
             r#"{}"#, 
-            Category::SQL_SENTENCE
+            Category::SELECT_SQL
         ).as_str())
             .fetch_all(pool)
             .await
@@ -97,7 +97,7 @@ impl Category {
     pub async fn read_by_name(pool: &Pool<MySql>, main_category_name: &String, sub_category_name: &String) -> ThisResult<Category> {
         sqlx::query_as::<_, Category>(format!(
             r#"{} WHERE main_category.name="{}" AND sub_category.name="{}";"#, 
-            Category::SQL_SENTENCE, 
+            Category::SELECT_SQL, 
             remove_special_chars(main_category_name)
                 .unwrap_or_else(|e| { warn!(r#"MainCategory({}) contains '"', ';', '-'"#, main_category_name); e }), 
             remove_special_chars(sub_category_name)

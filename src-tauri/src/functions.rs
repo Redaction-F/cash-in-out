@@ -44,6 +44,26 @@ pub async fn create_record(new_record: CashIORecord) -> ThisResult<()> {
 }
 
 #[tauri::command]
+pub async fn delete_record_by_id(id: usize) -> ThisResult<()> {
+    // データベースと通信確立
+    let pool: Pool<MySql> = connect_db().await?;
+    // データを削除
+    CashIORecord::read_by_id(&pool, id)
+        .await?
+        .ok_or_else(|| {
+            let e = Error::from_msg(
+                ErrorKinds::DataBaseError, 
+                "Failed to get CashIORecord which has the id.", 
+                "そのIdのデータは既に存在しません。"
+            );
+            error!("{:?}", e);
+            e
+        })?
+        .delete(&pool)
+        .await
+}
+
+#[tauri::command]
 pub async fn get_all_categorys() -> ThisResult<Vec<MainCategoryWithSubs>> {
     // データベースと通信確立
     let pool: Pool<MySql> = connect_db().await?;

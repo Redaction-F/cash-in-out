@@ -8,13 +8,13 @@ function Table(props: {
   optionButtonsFunctions: OptionButtonsFunctions
 }) {
   // 表の更新
-  function setTableRows(newTableRows: CashIORecord[]) {
-    tableRows.current = newTableRows;
+  function set(newTableRows: CashIORecord[]) {
+    table.current = newTableRows;
     setRenderTable((prev) => 1 - prev);
   }
   // 月を指定してデータベースからデータを読み込む
-  async function setTableRowsByMonth(year: SelectYear, month: SelectMonth) {
-    setTableRows(await getCashIORecoByMonth(year, month));
+  async function setByMonth(year: SelectYear, month: SelectMonth) {
+    set(await getCashIORecoByMonth(year, month));
   }
   // 各行のチェックボックスのonChangeでeventからとれるようにラップ
   function updateCheckedRowWrap(index: number, event: React.ChangeEvent<HTMLInputElement>) {
@@ -22,7 +22,7 @@ function Table(props: {
   }
 
   // 出入金データ全体
-  const tableRows = useRef<CashIORecord[]>([]);
+  const table = useRef<CashIORecord[]>([]);
   // データがチェックされているか否かとid
   const checkedStates = useRef<CheckedStates>(new CheckedStates());
   // tableRowsの更新時に更新
@@ -30,12 +30,12 @@ function Table(props: {
   const [renderTable, setRenderTable] = useState<number>(0);
 
   // tableFunctionsの初期化
-  props.tableFunctions.setTableRows = setTableRows;
-  props.tableFunctions.setTableRowsByMonth = setTableRowsByMonth;
-  props.tableFunctions.getFirstCheckedId = () => checkedStates.current.getFirstCheckedId();
+  props.tableFunctions.set = set;
+  props.tableFunctions.setByMonth = setByMonth;
+  props.tableFunctions.getCheckedId = () => checkedStates.current.getCheckedId();
   // tableRowsの更新時に実行
   useEffect(() => {
-    checkedStates.current.init(tableRows.current, props.optionButtonsFunctions);
+    checkedStates.current.init(table.current, props.optionButtonsFunctions);
   }, [renderTable])
 
   return(
@@ -66,7 +66,7 @@ function Table(props: {
       </thead>
       <tbody key={renderTable}>
         {
-          tableRows.current.map((tableRow, index) => 
+          table.current.map((tableRow, index) => 
             // 一行
             <tr key={tableRow.id}>
               <th scope="row">

@@ -9,6 +9,7 @@ pub use functions::{
     get_record_by_id, 
     update_record, 
     create_record, 
+    delete_record_by_id, 
     get_all_categorys, 
     add_main_category, 
     remove_main_category, 
