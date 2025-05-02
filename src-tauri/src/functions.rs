@@ -1,8 +1,19 @@
+// 日付
 use chrono::NaiveDate;
-use sqlx::{MySql, Pool};
+// logging用
 use log::error;
+// DB操作用
+use sqlx::{MySql, Pool};
+// このcrate
 use crate::{
-    cash_io::CashIORecord, category::{Category, MainCategoryWithSubs}, database::connect_db, other::{Error, ErrorKinds, ThisResult}
+    // 出入金データ
+    cash_io::CashIORecord, 
+    // カテゴリ
+    category::{Category, MainCategoryWithSubs}, 
+    // csv関連
+    csv::{write_in_csv as write_in_csv_simple, read_from_csv as read_from_csv_simple}, 
+    // BD関連
+    database::connect_db, other::{Error, ErrorKinds, ThisResult}
 };
 
 #[tauri::command]
@@ -110,4 +121,24 @@ pub async fn remove_sub_category(sub_category_name: String, main_category_name: 
         .await?
         .remove_sub(&pool)
         .await
+}
+
+#[tauri::command]
+pub async fn write_in_csv() -> ThisResult<()> {
+    // データベースと通信確立
+    let pool: Pool<MySql> = connect_db().await?;
+    let records: Vec<CashIORecord> = CashIORecord::read_all(&pool).await?;
+    write_in_csv_simple(records)?;
+    Ok(())
+}
+
+#[tauri::command]
+pub async fn read_from_csv(file_name: String) -> ThisResult<()> {
+    // データベースと通信確立
+    let pool: Pool<MySql> = connect_db().await?;
+    let reader: Vec<CashIORecord> = read_from_csv_simple(file_name)?;
+    for v in reader.into_iter() {
+        v.create(&pool).await?;
+    };
+    Ok(())
 }

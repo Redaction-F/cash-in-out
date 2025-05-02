@@ -42,6 +42,42 @@
   font-weight: 400;
 }
 
+/* ボタン */
+button {
+  /* 背景色 */
+  background-color: var(--color-content-2);
+  /* 枠線 */
+  border: 1px solid ;
+  /* 枠線の色 */
+  border-color: var(--color-text);
+  /* 高さ */
+  height: 5vh;
+  /* 最小幅 */
+  min-width: 75px;
+}
+
+/* ボタン(ホバー時) */
+button:hover {
+  /* 背景色 */
+  background-color: var(--color-content-3);
+}
+
+/* ボタン(クリック時) */
+button:active {
+  /* 背景色 */
+  background-color: var(--color-content-1);
+}
+
+/* ボタン(非アクティブ時) */
+button:disabled {
+  /* 背景色 */
+  background-color: var(--color-content-2);
+  /* カーソルを非アクティブに */
+  cursor: not-allowed;
+  /* 透明度 */
+  opacity: 0.3;
+}
+
 * {
   /* bodyのデフォルトのmarginを打ち消す */
   margin: 0;

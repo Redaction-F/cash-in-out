@@ -1,7 +1,6 @@
 import { useState } from "react";
-import { SpecialFunctions } from "../../logic";
+import { CashIORecord, SpecialFunctions } from "../../logic";
 import { dataFunctions, OptionButtonsFunctions, TableFunctions } from "./logic";
-import { invoke } from "@tauri-apps/api";
 
 // ボタン等
 function OptionButtons(props: {
@@ -11,25 +10,28 @@ function OptionButtons(props: {
   specialFunctions: SpecialFunctions
 }) {
   // 編集タブに遷移し、編集開始
-  async function startEditWrap() {
+  async function editWrap() {
     if (await props.specialFunctions.changeDisplay!("edit")) {
       let checkedId: number[] = props.tableFunctions.getCheckedId!();
       await props.specialFunctions.startEdit!(checkedId.length === 0 ? null : checkedId[0]);
     };
   }
   // 編集タブに遷移し、新規作成開始
-  async function startCreateWrap() {
+  async function createWrap() {
     if (await props.specialFunctions.changeDisplay!("edit")) {
       props.specialFunctions.startCreate!();
     };
   }
   // データを削除
   async function deleteWrap() {
+    if (!await confirm("削除しますか？")) {
+      return;
+    }
     let checkedId: number[] = props.tableFunctions.getCheckedId!();
     let errors: string[] = [];
     let isErrorOccured: boolean = false;
     for (let v of checkedId) {
-      await invoke<void>("delete_record_by_id", {id: v}).then(() => {}, (e) => {
+      await CashIORecord.deleteById(v).then(() => {}, (e) => {
         isErrorOccured = true;
         errors.push(String(e));
       })
@@ -40,7 +42,7 @@ function OptionButtons(props: {
     } else {
       alert("データを削除しました。")
     }
-    props.dataFunctions.init!();
+    props.dataFunctions.reload!();
   }
 
   // 表でチェックされている行の数
@@ -54,8 +56,8 @@ function OptionButtons(props: {
 
   return(
     <div className="option-buttons">
-      <button type="button" className="option-button" onClick={startCreateWrap} disabled={checkedCount !== 0}>新規</button>
-      <button type="button" className="option-button" onClick={startEditWrap} disabled={checkedCount !== 1}>編集</button>
+      <button type="button" className="option-button" onClick={createWrap} disabled={checkedCount !== 0}>新規</button>
+      <button type="button" className="option-button" onClick={editWrap} disabled={checkedCount !== 1}>編集</button>
       <button type="button" className="option-button" onClick={deleteWrap} disabled={checkedCount === 0}>削除</button>
     </div>
   )

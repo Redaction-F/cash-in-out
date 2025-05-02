@@ -2,7 +2,8 @@ import { useRef } from "react";
 import Displays from "./Displays";
 import TabBar from "./TabBar";
 import { DisplayHandler, SpecialFunctions } from "../../logic";
-import { DisplayName, emptyHandler } from "./logic";
+import { DisplayName, emptyHandler, LoadingDisplayFunctions } from "./logic";
+import LoadingDisplay from "./LoadingDisplay";
 
 // 画面全体
 function AppDisplay() {
@@ -21,6 +22,7 @@ function AppDisplay() {
     if (tabName == currentTab.current) {
       return false;
     }
+    loadingDisplayFunctions.start!();
     // 一度戻す
     changeDisplaySimple(tabName, currentTab.current);
     // close時の処理を実行、closeの許可が出るまで待機
@@ -31,8 +33,10 @@ function AppDisplay() {
       changeDisplaySimple(currentTab.current, tabName);
       // 現在表示中のtabを更新
       currentTab.current = tabName;
+      loadingDisplayFunctions.end!();
       return true;
     } else {
+      loadingDisplayFunctions.end!();
       return false;
     };
   };
@@ -52,16 +56,22 @@ function AppDisplay() {
     startEdit: undefined, 
     startCreate: undefined
   };
+  // ロード画面の機能の関数群
+  const loadingDisplayFunctions: LoadingDisplayFunctions = {
+    start: undefined, 
+    end: undefined
+  };
   
   // specicalFunctionを設定
   specialFunctions.changeDisplay = changeDisplay;
 
   return (
     <>
+      <LoadingDisplay loadingDisplayFunction={loadingDisplayFunctions}/>
       {/* display群 */}
       <Displays displayHandlers={displayHandlers} specialFunctions={specialFunctions} />
       {/* tab群 */}
-      <TabBar displayHandlers={displayHandlers} changeDisplay={changeDisplay} />
+      <TabBar displayHandlers={displayHandlers} specialFunctions={specialFunctions} />
     </>
   )
 }

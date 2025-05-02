@@ -1,7 +1,7 @@
-import { invoke } from "@tauri-apps/api";
 import { CashIORecord, SpecialFunctions } from "../../logic";
 import { EditFunctions, InputsFunctions, ModeOfEdit } from "./logic";
 
+// 編集に関するボタン群
 function EditButtons(props: {
   mode: ModeOfEdit, 
   setModeWrapper: (value: ModeOfEdit) => void, 
@@ -19,7 +19,7 @@ function EditButtons(props: {
       alert("IDを入力して下さい。");
       return;
     }
-    let records = await invoke<CashIORecord | null>("get_record_by_id", {id: id})
+    let records: CashIORecord | null = await CashIORecord.getById(id);
     if (records === null) {
       alert("入力されたIDのデータは存在しません。\n存在するデータのIDを入力するか、データ一覧から選択して編集してください。");
     } else {
@@ -30,7 +30,7 @@ function EditButtons(props: {
   // 出入金データ新規作成
   async function doCreate() {
     let newData: CashIORecord = props.inputsFunctions.get!();
-    await invoke<void>("create_record", {newRecord: newData}).then(() => {
+    await newData.create().then(() => {
       alert("新規作成が完了しました。");
       props.inputsFunctions.setEmpty!();
       props.setModeWrapper("selectMode");
@@ -42,7 +42,7 @@ function EditButtons(props: {
   // 出入金データ更新
   async function doUpdate() {
     let changedData: CashIORecord = props.inputsFunctions.get!();
-    await invoke<void>("update_record", {changedRecord: changedData}).then(() => {
+    await changedData.update().then(() => {
       alert("編集が完了しました。");
       props.inputsFunctions.setEmpty!();
       props.setModeWrapper("selectMode");
@@ -70,7 +70,23 @@ function EditButtons(props: {
 
   return (
     <div className="edit-buttons">
-      <button type="button" className="edit-button" onClick={startEditById} disabled={props.mode !== "selectMode"}>編集</button>
+      <button type="button" className="edit-button" onClick={() => {
+        if (props.mode === "selectMode") {
+          startEditById()
+        } else if (props.mode === "updateMode") {
+          doUpdate()
+        } else if (props.mode === "createMode") {
+          doCreate()
+        }
+      }} disabled={props.mode === "createMode"}>
+        {
+          props.mode === "selectMode"
+          ? "編集" 
+          : props.mode === "updateMode"
+          ? "編集"
+          : ""
+        }
+      </button>
       <button type="button" className="edit-button" onClick={() => {
         if (props.mode === "selectMode") {
           startCreate()
@@ -79,12 +95,12 @@ function EditButtons(props: {
         } else if (props.mode === "createMode") {
           doCreate()
         }
-      }}>
+      }} disabled={props.mode === "updateMode"}>
         {
           props.mode === "selectMode"
           ? "新規" 
           : props.mode === "updateMode"
-          ? "編集"
+          ? ""
           : "作成"
         }
       </button>

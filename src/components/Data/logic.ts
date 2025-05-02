@@ -1,9 +1,8 @@
-import { invoke } from "@tauri-apps/api";
 import { CashIORecord } from "../../logic";
 
 // Data.tsxが提供する関数群
 export type dataFunctions = {
-  init: (() => Promise<void>) | undefined
+  reload: (() => Promise<void>) | undefined
 }
 
 // Table.tsxが提供する関数群
@@ -23,21 +22,6 @@ export type OptionButtonsFunctions = {
   clearCheckedCount: (() => void) | undefined, 
   incCheckedCount: (() => void) | undefined, 
   decCheckedCount: (() => void) | undefined
-}
-
-// 今月のデータを取得
-export async function getCashIORecordInThisMonth(): Promise<CashIORecord[]> {
-  let today: Date = new Date();
-  return await invoke<CashIORecord[]>("get_records_by_month", {year: today.getFullYear(), month: today.getMonth() + 1});
-}
-
-// データを取得
-export async function getCashIORecoByMonth(year: SelectYear, month: SelectMonth): Promise<CashIORecord[]> {
-  if (month === null) {
-    return [];
-  } else {
-    return await invoke<CashIORecord[]>("get_records_by_month", {year: year.value, month: month});
-  }
 }
 
 // 表の各行のチェック状態を管理
@@ -122,13 +106,5 @@ export class SelectYear {
 
   get value(): number {
     return this._value;
-  }
-
-  static get startYear(): SelectYear {
-    return new SelectYear(SelectYear._startYear)
-  }
-
-  static get endYear(): SelectYear {
-    return new SelectYear(SelectYear._endYear)
   }
 }

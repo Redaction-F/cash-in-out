@@ -15,6 +15,7 @@ function TermSelect(props: {
     let month: number | null = monthSelect.current?.value === "null" ? null : Number(monthSelect.current?.value);
     return selectMonth(month);
   }
+  // 最終月を更新
   function setMonthLen(value: number) {
     monthLen.current = value;
     setMonthRenderSelect((prev) => 1 - prev);
@@ -53,11 +54,12 @@ function TermSelect(props: {
   };
 
   return (
-    <div className="dropdown-term-wrapper">
+    <div className="termselect-container">
+      {/* 兄弟要素とkeyが被らないようにすみわけ */}
       <>
         <select 
           id="year" 
-          className="dropdown-term-select" 
+          className="termselect-select" 
           onChange={onUpdateOfYear} 
           defaultValue={today.getFullYear()} 
           key={renderYearSelect} 
@@ -68,10 +70,11 @@ function TermSelect(props: {
           }
         </select>
       </>
+      {/* 兄弟要素とkeyが被らないようにすみわけ */}
       <>
         <select 
           id="month" 
-          className="dropdown-term-select" 
+          className="termselect-select" 
           onChange={onUpdateOfMonth} 
           defaultValue={String(monthLen.current)} 
           key={renderMonthSelect} 

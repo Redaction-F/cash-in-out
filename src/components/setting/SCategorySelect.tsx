@@ -1,5 +1,6 @@
 import { useRef, useState } from "react";
-import { MCategorySelectFunctions, SelectMCategory, SelectSCategory, SCategorySelectFunctions } from "./logic";
+import { MCategory, SCategory } from "../../logic";
+import { MCategorySelectFunctions, SCategorySelectFunctions } from "./logic";
 
 function SCategorySelect(props: {
   mCategoryFunctions: MCategorySelectFunctions, 
@@ -9,16 +10,16 @@ function SCategorySelect(props: {
   defaultValue: string
 }) {
   // ドロップダウンから選択中のサブカテゴリを取得
-  function get(): SelectSCategory | string {
-    return SelectSCategory.fromString(select.current!.value);
+  function get(): SCategory | string {
+    return SCategory.fromString(select.current!.value);
   }
   // サブカテゴリを読み込み再レンダリング
-  function reload(mainCategory: SelectMCategory | string) {
-    if (mainCategory instanceof SelectMCategory) {
-      SelectSCategory.reload(mainCategory);
+  function reload(mainCategory: MCategory | string) {
+    if (mainCategory instanceof MCategory) {
+      SCategory.reload(mainCategory);
       setRender((prev) => 1 - prev);
     } else {
-      SelectSCategory.clear();
+      SCategory.clear();
       setRender((prev) => 1 - prev);
     }
   }
@@ -45,12 +46,12 @@ function SCategorySelect(props: {
       key={render} 
       ref={select}
     >
-      <option value={SelectSCategory.none.value}>--</option>
+      <option value={SCategory.none.value}>--</option>
       {
-        SelectSCategory.subCategorys.map((v) => <option value={v} key={v}>{v}</option>)
+        SCategory.subCategorys.map((v) => <option value={v} key={v}>{v}</option>)
       }
       {
-        SelectSCategory.subCategorys.length === 0
+        SCategory.subCategorys.length === 0
         ? <></>
         : props.additionalOption
       }

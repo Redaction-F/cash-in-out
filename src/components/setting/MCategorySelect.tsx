@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import { MCategorySelectFunctions, SelectMCategory, SCategorySelectFunctions } from "./logic";
+import { MCategory } from "../../logic";
+import { MCategorySelectFunctions, SCategorySelectFunctions } from "./logic";
 
 function MCategorySelect(props: {
   mCategoryFunctions: MCategorySelectFunctions, 
@@ -9,12 +10,12 @@ function MCategorySelect(props: {
   defaultValue: string, 
 }) {
   // ドロップダウンから選択中のメインカテゴリを取得
-  function get(): SelectMCategory | string {
-    return SelectMCategory.fromString(select.current!.value);
+  function get(): MCategory | string {
+    return MCategory.fromString(select.current!.value);
   }
   // メインカテゴリを読み込み再レンダリング
   async function reload() {
-    await SelectMCategory.reload();
+    await MCategory.reload();
     setRender((prev) => 1 - prev);
   }
 
@@ -41,9 +42,9 @@ function MCategorySelect(props: {
       key={render} 
       ref={select}
     >
-      <option value={SelectMCategory.none.value}>--</option>
+      <option value={MCategory.none.value}>--</option>
       {
-        SelectMCategory.mainCategorys.map((v) => <option value={v} key={v}>{v}</option>)
+        MCategory.mainCategorys.map((v) => <option value={v} key={v}>{v}</option>)
       }
       {
         props.additionalOption

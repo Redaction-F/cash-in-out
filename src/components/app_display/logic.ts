@@ -15,9 +15,12 @@ export function emptyHandler(): DisplayHandler {
   return {
     content: useRef<HTMLDivElement>(null),
     tab: useRef<HTMLInputElement>(null), 
-    onClose: async() => {
-      return true
-    },
+    onClose: async () => true,
     onOpen: async () => {},
   };
+}
+
+export type LoadingDisplayFunctions = {
+  start: (() => void) | undefined, 
+  end: (() => void) | undefined
 }

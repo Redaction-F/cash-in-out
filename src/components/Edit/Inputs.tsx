@@ -1,14 +1,15 @@
 import { RefObject, useEffect, useRef, useState } from "react";
 import MCategorySelect from "../setting/MCategorySelect";
 import SCategorySelect from "../setting/SCategorySelect";
-import { CashIORecord, CashIORecordField, cashIORecordFields } from "../../logic";
-import { MCategorySelectFunctions, SelectMCategory, SelectSCategory, SCategorySelectFunctions } from "../setting/logic";
+import { CashIORecord, CashIORecordField, cashIORecordFields, SCategory } from "../../logic";
+import { MCategorySelectFunctions, SCategorySelectFunctions } from "../setting/logic";
 import { EditFunctions, InputsFunctions, ModeOfEdit } from "./logic";
 
+// 入力フォーム群
 function Inputs(props: {
   mode: ModeOfEdit, 
   editFunctions: EditFunctions, 
-  inputGetterSetter: InputsFunctions
+  inputsFunctions: InputsFunctions
 }) {
   // valueの内容に入力フォームを初期化
   function setInput(value: CashIORecord) {
@@ -35,19 +36,15 @@ function Inputs(props: {
   }
   // 入力データの取得
   function getInput(): CashIORecord {
-    let id: string = inputs["id"].current!.value;
-    let mainCategory: SelectMCategory | string = mainCategorySelectorFunctions.get!();
-    let subCategory: SelectSCategory | string = subCategorySelectorFunctions.get!();
-    let amount: string = inputs["amount"].current!.value;
-    return {
-      id: id === "" ? 0 : Number(id), 
-      date: inputs["date"].current!.value, 
-      mainCategory: (mainCategory instanceof SelectMCategory) ? mainCategory.value : mainCategory, 
-      subCategory: (subCategory instanceof SelectSCategory) ? subCategory.value : subCategory, 
-      title: inputs["title"].current!.value, 
-      amount: amount === "" ? 0 : Number(amount), 
-      memo: inputs["memo"].current!.value
-    }
+    return new CashIORecord(
+      inputs["id"].current!.value, 
+      inputs["date"].current!.value, 
+      SCategory.superCategory, 
+      subCategorySelectorFunctions.get!(), 
+      inputs["title"].current!.value, 
+      inputs["amount"].current!.value, 
+      inputs["memo"].current!.value, 
+    )
   }
 
   // フォームの要素
@@ -90,11 +87,11 @@ function Inputs(props: {
   const firstRender = useRef<boolean>(true);
 
   // inputGetterSetterの設定
-  props.inputGetterSetter.set = setInput;
-  props.inputGetterSetter.setEmpty = setInputEmpty;
-  props.inputGetterSetter.getId = getInputedId;
-  props.inputGetterSetter.get = getInput;
-  props.inputGetterSetter.reload = () => mainCategorySelectorFunctions.reload!();
+  props.inputsFunctions.set = setInput;
+  props.inputsFunctions.setEmpty = setInputEmpty;
+  props.inputsFunctions.getId = getInputedId;
+  props.inputsFunctions.get = getInput;
+  props.inputsFunctions.reload = () => mainCategorySelectorFunctions.reload!();
   // enterキーにバインド
   useEffect(() => {
     if (firstRender.current) {

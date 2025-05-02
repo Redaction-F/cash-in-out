@@ -1,6 +1,7 @@
 import { useRef, useState } from "react";
 import { invoke } from "@tauri-apps/api/tauri";
-import { CategoryFunctions, MCategorySelectFunctions, SelectMCategory, SelectSCategory, SCategorySelectFunctions } from "./logic";
+import { MCategory, SCategory } from "../../logic";
+import { CategoryFunctions, MCategorySelectFunctions, SCategorySelectFunctions } from "./logic";
 import MCategorySelect from "./MCategorySelect";
 import SCategorySelect from "./SCategorySelect";
 
@@ -9,23 +10,23 @@ function Category(props: {
   categoryFunction: CategoryFunctions
 }) {
   // 選択しているメインカテゴリを取得
-  function getSelectedMCategory(): SelectMCategory | SelectMainCategoryAdditional {
-    let mainCategoryName: SelectMCategory | string = mCategorySelectFunctions.get!();
-    if (mainCategoryName instanceof SelectMCategory || mainCategoryName === selectAddMainCategory) {
+  function getSelectedMCategory(): MCategory | SelectMainCategoryAdditional {
+    let mainCategoryName: MCategory | string = mCategorySelectFunctions.get!();
+    if (mainCategoryName instanceof MCategory || mainCategoryName === selectAddMainCategory) {
       return mainCategoryName;
     } else {
       console.log("Developer error: The value is not MainCategory(Setting).");
-      return SelectMCategory.none;
+      return MCategory.none;
     }
   }
   // 選択しているサブカテゴリを取得
-  function getSelectedSCategory(): SelectSCategory | SelectSubCategoryAdditional {
-    let subCategoryName: SelectSCategory | string = sCategorySelectFunctions.get!();
-    if (subCategoryName instanceof SelectSCategory || subCategoryName === selectRemoveMainCategory || subCategoryName === selectAddSubCategory) {
+  function getSelectedSCategory(): SCategory | SelectSubCategoryAdditional {
+    let subCategoryName: SCategory | string = sCategorySelectFunctions.get!();
+    if (subCategoryName instanceof SCategory || subCategoryName === selectRemoveMainCategory || subCategoryName === selectAddSubCategory) {
       return subCategoryName;
     } else {
       console.log("Developer error: The value is not SubCategory(Setting).");
-      return SelectSCategory.none;
+      return SCategory.none;
     }
   }
   // カテゴリの追加
@@ -35,10 +36,10 @@ function Category(props: {
       alert("カテゴリ名を入力してください。");
       return;
     }
-    let mainCategoryName: SelectMCategory | SelectMainCategoryAdditional = getSelectedMCategory();
-    let subCategoryName: SelectSCategory | SelectSubCategoryAdditional = getSelectedSCategory();
+    let mainCategoryName: MCategory | SelectMainCategoryAdditional = getSelectedMCategory();
+    let subCategoryName: SCategory | SelectSubCategoryAdditional = getSelectedSCategory();
     let addResult: Promise<void>;
-    if (mainCategoryName instanceof SelectMCategory && mainCategoryName.isNone()) {
+    if (mainCategoryName instanceof MCategory && mainCategoryName.isNone()) {
       alert("メインカテゴリを選択してください。");
       return;
     } else if (mainCategoryName === selectAddMainCategory) {
@@ -61,14 +62,14 @@ function Category(props: {
   }
   // カテゴリの削除
   async function removeCategory() {
-    let mainCategoryName: SelectMCategory | SelectMainCategoryAdditional = getSelectedMCategory();
-    let subCategoryName: SelectSCategory | SelectSubCategoryAdditional = getSelectedSCategory();
+    let mainCategoryName: MCategory | SelectMainCategoryAdditional = getSelectedMCategory();
+    let subCategoryName: SCategory | SelectSubCategoryAdditional = getSelectedSCategory();
     let removeResult: Promise<void>;
-    if ((mainCategoryName instanceof SelectMCategory && mainCategoryName.isNone()) || mainCategoryName === "--addMainCategory") {
+    if ((mainCategoryName instanceof MCategory && mainCategoryName.isNone()) || mainCategoryName === "--addMainCategory") {
       alert("メインカテゴリを選択してください。");
       return;
     } else {
-      if ((subCategoryName instanceof SelectSCategory && subCategoryName.isNone()) || subCategoryName === "--addSubCategory") {
+      if ((subCategoryName instanceof SCategory && subCategoryName.isNone()) || subCategoryName === "--addSubCategory") {
         alert("メインカテゴリを削除する場合は、「(メインカテゴリを削除)」を選択してください。");
         return;
       } else if (subCategoryName === "--removeMainCategory") {
@@ -133,7 +134,7 @@ function Category(props: {
             <option value={selectAddMainCategory} key={selectAddMainCategory}>(メインカテゴリを追加)</option>
           ]} 
           disabled={false} 
-          defaultValue={SelectMCategory.none.value}
+          defaultValue={MCategory.none.value}
         />
       </div>
       <div className="setting-row">
@@ -146,12 +147,12 @@ function Category(props: {
             <option value={selectAddSubCategory} key={selectAddSubCategory}>(サブカテゴリを追加)</option>
           ]} 
           disabled={false} 
-          defaultValue={SelectSCategory.none.value}
+          defaultValue={SCategory.none.value}
         />
       </div>
       <div className="setting-row">
-        <div className="setting-label">追加するカテゴリ名</div>
-        <input className="setting-input" defaultValue="" key={inputRender} ref={inputedCategoryName} />
+        <label className="setting-label" htmlFor="category-name">追加するカテゴリ名</label>
+        <input className="setting-input" id="category-name" defaultValue="" key={inputRender} ref={inputedCategoryName} />
       </div>
       <div className="setting-row">
         <div className="setting-label"></div>

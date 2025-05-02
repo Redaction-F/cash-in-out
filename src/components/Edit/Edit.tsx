@@ -51,8 +51,10 @@ function Edit(props: {
   
   return (
     <>
+      {/* ボタン群 */}
       <EditButtons mode={mode} setModeWrapper={setModeWrapper} editFunctions={editFunctions} inputsFunctions={inputsFunctions} specialFunctions={props.specialFunctions}/>
-      <Inputs mode={mode} editFunctions={editFunctions} inputGetterSetter={inputsFunctions}/>
+      {/* 入力フォーム群 */}
+      <Inputs mode={mode} editFunctions={editFunctions} inputsFunctions={inputsFunctions}/>
     </>
   )
 }

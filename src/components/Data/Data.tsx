@@ -1,8 +1,9 @@
 import OptionButtons from "./OptionButtons";
 import TermSelect from "./TermSelect";
 import Table from "./Table";
-import { DisplayHandler, SpecialFunctions } from "../../logic";
-import { dataFunctions, getCashIORecordInThisMonth, OptionButtonsFunctions, TableFunctions, TermSelectFunctions } from "./logic";
+import { DisplayHandler, SpecialFunctions, CashIORecord } from "../../logic";
+import { dataFunctions, OptionButtonsFunctions, TableFunctions, TermSelectFunctions } from "./logic";
+import IOButtions from "./IOButtons";
 
 // data display
 // 出入金データの選択・表示
@@ -12,13 +13,13 @@ function Data(props: {
 }) {
   // 再読み込み
   async function reload() {
-    tableFunctions.set!(await getCashIORecordInThisMonth());
+    tableFunctions.set!(await CashIORecord.getInThisMonth());
     termSelectFunctions.reload!();
   }
 
   // Data.tsxが提供する関数群
   const dataFunctions: dataFunctions = {
-    init: reload
+    reload: reload
   }
   // Table.tsxが提供する関数群
   const tableFunctions: TableFunctions = {
@@ -42,9 +43,13 @@ function Data(props: {
 
   return (
     <>
+      {/* ボタン群 */}
       <OptionButtons dataFunctions={dataFunctions} tableFunctions={tableFunctions} optionButtonsFunctions={optionButtonsFunctions} specialFunctions={props.specialFunctions}/>
+      {/* 期間選択ドロップダウン */}
       <TermSelect tableFunctions={tableFunctions} termSelectFunctions={termSelectFunctions}/>
+      {/* 表 */}
       <Table tableFunctions={tableFunctions} optionButtonsFunctions={optionButtonsFunctions}/>
+      <IOButtions />
     </>
   )
 }

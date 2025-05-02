@@ -9,14 +9,6 @@
 
 /* 編集ボタン */
 .edit-button {
-  /* 背景色 */
-  background-color: var(--color-content-2);
-  /* 枠 */
-  border: 1px solid;
-  /* 枠の色 */
-  border-color: var(--color-text);
-  /* 高さ */
-  height: 5vh;
   /* 幅 */
   width: 10%;
 }

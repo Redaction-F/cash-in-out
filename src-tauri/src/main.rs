@@ -27,6 +27,8 @@ async fn main() {
             cash_in_out::remove_main_category, 
             cash_in_out::add_sub_category, 
             cash_in_out::remove_sub_category, 
+            cash_in_out::write_in_csv, 
+            cash_in_out::read_from_csv
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

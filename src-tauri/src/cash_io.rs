@@ -2,12 +2,12 @@
 use std::fmt::Debug;
 // 時刻管理
 use chrono::{Datelike, NaiveDate, NaiveDateTime};
+// logging用
+use log::{error, warn};
 // Serialize(Frontendとの通信用)
 use serde::{de::{self, Deserialize, Visitor}, ser::{Serialize, SerializeStruct}};
 // DB操作用
 use sqlx::{mysql::MySql, FromRow, Pool, Row};
-// logging用
-use log::{error, warn};
 // このcrate
 use crate::{
     // データベース関連
@@ -24,7 +24,7 @@ pub struct CashIORecord {
     main_category: String, 
     sub_category: String, 
     title: String, 
-    amount: usize, 
+    amount: isize, 
     memo: Option<String>, 
     #[allow(dead_code)]
     created_at: Option<NaiveDateTime>, 
@@ -34,7 +34,7 @@ pub struct CashIORecord {
 
 impl CashIORecord {
     // field群
-    const FIELDS: [&'static str; 9] = ["id", "date", "main_category", "sub_category", "title", "amount", "memo", "created_at", "updated_at"];
+    const FIELDS: [&'static str; 7] = ["id", "date", "mainCategory", "subCategory", "title", "amount", "memo"];
     // CashIORecordを取得するSQL文
     const SELECT_SQL: &'static str = "SELECT 
             cash_record.id, 
@@ -50,6 +50,26 @@ impl CashIORecord {
         FROM cash_record 
             INNER JOIN sub_category ON cash_record.category=sub_category.id 
             INNER JOIN main_category ON sub_category.super_category=main_category.id";
+
+    // データベースからすべて取得
+    pub async fn read_all(pool: &Pool<MySql>) -> ThisResult<Vec<CashIORecord>> {
+        sqlx::query_as::<_, CashIORecord>(format!(
+            r#"{};"#, 
+            CashIORecord::SELECT_SQL
+        ).as_str())
+            .fetch_all(pool)
+            .await
+            .map_err(|e| {
+                let e: Error = Error::from_into_string(
+                    ErrorKinds::DataBaseError, 
+                    "Failed to get CashIORecord from database.", 
+                    "データの取得に失敗しました。", 
+                    e
+                );
+                error!("{:?}", e);
+                e
+            })
+    }
 
     // データベースからidで検索し取得
     pub async fn read_by_id(pool: &Pool<MySql>, id: usize) -> ThisResult<Option<CashIORecord>> {
@@ -108,7 +128,7 @@ impl CashIORecord {
         ).as_str())
             .fetch_all(pool)
             .await
-            .map_err(|e| {
+            .map_or_else(|e| {
                 let e: Error = Error::from_into_string(
                     ErrorKinds::DataBaseError, 
                     "Failed to get CashIORecord from database.", 
@@ -116,7 +136,10 @@ impl CashIORecord {
                     e
                 );
                 error!("{:?}", e);
-                e
+                Err(e)
+            }, |mut v| {
+                v.sort_by_key(|u| u.date);
+                Ok(v)
             })
     }
 
@@ -269,11 +292,11 @@ impl<'de> Visitor<'de> for CashIORecordVisitor {
         let mut main_category: Option<String> = None;
         let mut sub_category: Option<String> = None;
         let mut title: Option<String> = None;
-        let mut amount: Option<usize> = None;
+        let mut amount: Option<isize> = None;
         let mut memo: Option<Option<String>> = None;
         while let Some(key) = map.next_key::<String>()? {
             match key.as_str() {
-                "id" => {
+                "id" | "_id" => {
                     if id.is_some() {
                         let e = de::Error::duplicate_field("id");
                         error!("{:?}", e);
@@ -281,18 +304,18 @@ impl<'de> Visitor<'de> for CashIORecordVisitor {
                     }
                     id = Some(map.next_value::<usize>().map_err(|e| { error!("{:?}", e); e })?)
                 }, 
-                "date" => {
+                "date" | "_date" => {
                     if date.is_some() {
                         let e = de::Error::duplicate_field("date");
                         error!("{:?}", e);
                         return Err(e);
                     }
                     date = {
-                        let date = map.next_value::<NaiveDate>().map_err(|e| { error!("{:?}", e); e })?;
+                        let date: NaiveDate = map.next_value::<NaiveDate>().map_err(|e| { error!("{:?}", e); e })?;
                         Some(date)
                     };
                 }, 
-                "mainCategory" => {
+                "mainCategory" | "_mainCategory" => {
                     if main_category.is_some() {
                         let e = de::Error::duplicate_field("main_category");
                         error!("{:?}", e);
@@ -300,7 +323,7 @@ impl<'de> Visitor<'de> for CashIORecordVisitor {
                     }
                     main_category = Some(map.next_value::<String>().map_err(|e| { error!("{:?}", e); e })?)
                 }, 
-                "subCategory" => {
+                "subCategory" | "_subCategory" => {
                     if sub_category.is_some() {
                         let e = de::Error::duplicate_field("sub_category");
                         error!("{:?}", e);
@@ -308,7 +331,7 @@ impl<'de> Visitor<'de> for CashIORecordVisitor {
                     }
                     sub_category = Some(map.next_value::<String>().map_err(|e| { error!("{:?}", e); e })?)
                 }, 
-                "title" => {
+                "title" | "_title" => {
                     if title.is_some() {
                         let e = de::Error::duplicate_field("title");
                         error!("{:?}", e);
@@ -316,15 +339,15 @@ impl<'de> Visitor<'de> for CashIORecordVisitor {
                     }
                     title = Some(map.next_value::<String>().map_err(|e| { error!("{:?}", e); e })?)
                 }, 
-                "amount" => {
+                "amount" | "_amount" => {
                     if amount.is_some() {
                         let e = de::Error::duplicate_field("amount");
                         error!("{:?}", e);
                         return Err(e);
                     }
-                    amount = Some(map.next_value::<usize>().map_err(|e| { error!("{:?}", e); e })?)
+                    amount = Some(map.next_value::<isize>().map_err(|e| { error!("{:?}", e); e })?)
                 }, 
-                "memo" => {
+                "memo" | "_memo" => {
                     if memo.is_some() {
                         let e = de::Error::duplicate_field("memo");
                         error!("{:?}", e);
@@ -402,7 +425,7 @@ impl<'r, R> FromRow<'r, R> for CashIORecord
         let main_category: String = row.try_get::<'_, String, _>("main_category_name")?;
         let sub_category: String = row.try_get::<'_, String, _>("sub_category_name")?;
         let title: String = row.try_get::<'_, String, _>("title")?;
-        let amount: usize = <usize as TryFrom<i32>>::try_from(row.try_get::<'_, i32, _>("amount")?)
+        let amount: isize = <isize as TryFrom<i32>>::try_from(row.try_get::<'_, i32, _>("amount")?)
             .map_err(|e| sqlx::Error::Decode(Box::new(e)))?;
         let memo: Option<String> = row.try_get::<'_, Option<String>, _>("memo")?;
         let created_at: NaiveDateTime = row.try_get::<'_, NaiveDateTime, _>("created_at")?;

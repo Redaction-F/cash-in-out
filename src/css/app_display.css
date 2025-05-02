@@ -54,9 +54,9 @@
 /* ====== */
 
 
-/* === For TabsWrapper.tsx === */
+/* === For TabBar.tsx === */
 /* タブ全体 */
-.tabbar-wapper {
+.tabbar-container {
   /* 枠(上) */
   border-top: 2px solid;
   /* 枠(上)の色 */
@@ -184,5 +184,57 @@
   /* 背景色 */
   background-color: var(--color-content-3);
 }
-
 /* ======= */
+
+/* === LoadingDisplay.tsx === */
+.loading-container {
+  /* 子要素を中央揃えに配置(display: flex) */
+  align-items: center;
+  /* 背景色 */
+  background-color: var(--color-background);
+  /* heightにborder,paddingを含める */
+  box-sizing: border-box;
+  /* 子要素を横並びに配置(今回はalign-itemsとjustify-contentを適用するために使用) */
+  display: flex;
+  /* 高さ */
+  height: 80vh;
+  /* 子要素を上詰めに配置(display: flex) */
+  justify-content: center;
+  /* 背景の透明度 */
+  opacity: 0.5;
+  /* 他要素と重ねる */
+  position: absolute;
+  /* 幅 */
+  width: 94vw;
+}
+
+.loading-loaded {
+  display: none;
+}
+
+.loading-spinner {
+  /* アニメーションを1秒かけて実行 */
+  animation: spinner-rotation 1s linear infinite;
+  /* 円 */
+  border-radius: 50%;
+  /* 円回転部分 */
+  border: 5px solid var(--color-text);
+  /* 円あまり部分 */
+  border-left-color: var(--color-background); 
+  /* 高さ */
+  height: 30px;
+  /* 透明度(親のプロパティの打ち消し) */
+  opacity: 1;
+  /* 幅 */
+  width: 30px;
+}
+
+@keyframes spinner-rotation {
+  0% {
+    transform: rotate(0);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+/* ====== */

@@ -2,12 +2,12 @@
 use std::{collections::HashMap, fmt::{Debug, Display}};
 // 時刻管理
 use chrono::NaiveDateTime;
+// logging用
+use log::{error, warn};
 // FrontEnd通信用
 use serde::{ser::SerializeStruct, Serialize};
 // DB操作用
 use sqlx::{FromRow, MySql, Pool, Row};
-// logging用
-use log::{error, warn};
 // このクレート
 use crate::{
     // データベース関連
@@ -309,12 +309,20 @@ impl MainCategory {
             .execute(pool)
             .await
             .map_err(|e| {
-                let e: Error = Error::from_into_string(
-                    ErrorKinds::DataBaseError, 
-                    "Failed to create SubCategory from databaseb.", 
-                    "カテゴリの削除に失敗しました。", 
-                    e
-                );
+                let e: Error = match e {
+                    sqlx::Error::Database(e) if e.is_foreign_key_violation() => Error::from_into_string(
+                        ErrorKinds::DataBaseError, 
+                        "There are some records which have this MainCategory.", 
+                        "このメインカテゴリを持つデータがあります。", 
+                        e
+                    ), 
+                    e => Error::from_into_string(
+                        ErrorKinds::DataBaseError, 
+                        "Failed to create SubCategory from database.", 
+                        "カテゴリの削除に失敗しました。", 
+                        e
+                    )
+                };
                 error!("{:?}", e);
                 e
             })?;
@@ -485,12 +493,20 @@ impl SubCategory {
             .execute(pool)
             .await
             .map_err(|e| {
-                let e: Error = Error::from_into_string(
-                    ErrorKinds::DataBaseError, 
-                    "Failed to remove SubCategory from database.", 
-                    "カテゴリの削除に失敗しました。", 
-                    e
-                );
+                let e: Error = match e {
+                    sqlx::Error::Database(e) if e.is_foreign_key_violation() => Error::from_into_string(
+                        ErrorKinds::DataBaseError, 
+                        "There are some records which have this SubCategory.", 
+                        "このサブカテゴリを持つデータがあります。", 
+                        e
+                    ), 
+                    e => Error::from_into_string(
+                        ErrorKinds::DataBaseError, 
+                        "Failed to remove SubCategory from database.", 
+                        "カテゴリの削除に失敗しました。", 
+                        e
+                    )
+                };
                 error!("{:?}", e);
                 e
             })?;

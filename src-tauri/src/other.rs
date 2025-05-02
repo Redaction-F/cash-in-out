@@ -53,7 +53,7 @@ impl Serialize for Error {
 //      01: Category::new
 #[derive(Debug)]
 pub enum ErrorKinds {
-    ReadCsvError, 
+    FileError, 
     DataBaseError, 
     TypeError, 
     CategoryError, 
@@ -63,7 +63,7 @@ pub enum ErrorKinds {
 impl Display for ErrorKinds {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", match self {
-            ErrorKinds::ReadCsvError => "ReadCsvError", 
+            ErrorKinds::FileError => "ReadCsvError", 
             ErrorKinds::DataBaseError => "DataBaseError", 
             ErrorKinds::TypeError => "TypeError", 
             ErrorKinds::CategoryError => "CategoryError", 

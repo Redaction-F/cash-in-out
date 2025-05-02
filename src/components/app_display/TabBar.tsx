@@ -1,24 +1,24 @@
-import { DisplayHandler } from "../../logic";
+import { DisplayHandler, SpecialFunctions } from "../../logic";
 import { displayNames, DisplayName, isDisplayName } from "./logic";
 
 // display群を切り替えるためのtab群
 function TabBar(props: {
   displayHandlers: {[key in DisplayName]: DisplayHandler}, 
-  changeDisplay: (tab_name: DisplayName) => Promise<boolean>
+  specialFunctions: SpecialFunctions
 }) {
   // tabのonChangeからdisplay切り替え
   // onChangeに設定するHTMLInputElementのvalueはDisplayName型でないといけない
   function changeDisplayFromTab(event: React.ChangeEvent<HTMLInputElement>) {
     let value: string = event.target.value;
     if (isDisplayName(value)) {
-      props.changeDisplay(value);
+      props.specialFunctions.changeDisplay!(value);
     } else {
       console.log("Developer Error: Tab name is invalid.");
     };
   }
 
   return (
-    <div className="tabbar-wapper">
+    <div className="tabbar-container">
       {
         displayNames.map((value) => 
           <div className="tabbar-tab" key={value}>

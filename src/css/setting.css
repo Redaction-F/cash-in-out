@@ -1,3 +1,4 @@
+/* === For each tsx === */
 .setting-section {
   margin-bottom: 5vh;
 }
@@ -36,14 +37,6 @@
 
 /* 各オプションボタン */
 .setting-button {
-  /* 背景色 */
-  background-color: var(--color-content-2);
-  /* 枠線 */
-  border: 1px solid ;
-  /* 枠線の色 */
-  border-color: var(--color-text);
-  /* 高さ */
-  height: 5vh;
   /* 幅 */
   width: 10%;
 }
@@ -79,3 +72,4 @@
   /* 幅 */
   width: 100px;
 }
+/* ====== */

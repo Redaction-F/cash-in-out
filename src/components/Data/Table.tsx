@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { CashIORecord } from "../../logic";
-import { CheckedStates, getCashIORecoByMonth, OptionButtonsFunctions, SelectMonth, SelectYear, TableFunctions } from "./logic";
+import { CheckedStates, OptionButtonsFunctions, SelectMonth, SelectYear, TableFunctions } from "./logic";
 
 // data displayの出入金データ表
 function Table(props: {
@@ -14,7 +14,10 @@ function Table(props: {
   }
   // 月を指定してデータベースからデータを読み込む
   async function setByMonth(year: SelectYear, month: SelectMonth) {
-    set(await getCashIORecoByMonth(year, month));
+    if (month === null) {
+      return;
+    }
+    set(await CashIORecord.getByMonth(year.value, month));
   }
   // 各行のチェックボックスのonChangeでeventからとれるようにラップ
   function updateCheckedRowWrap(index: number, event: React.ChangeEvent<HTMLInputElement>) {
