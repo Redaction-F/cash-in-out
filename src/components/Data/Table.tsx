@@ -42,62 +42,69 @@ function Table(props: {
   }, [renderTable])
 
   return(
-    <table className="one-month-table">
-      {/* 先頭行 */}
-      <thead>
-        <tr>
-          <th scope="col"></th>
-          <th scope="col">
-            ID
-          </th>
-          <th scope="col">
-            日付
-          </th>
-          <th scope="col">
-            カテゴリ
-          </th>
-          <th scope="col">
-            件名
-          </th>
-          <th scope="col">
-            金額
-          </th>
-          <th scope="col">
-            備考
-          </th>
-        </tr>
-      </thead>
-      <tbody key={renderTable}>
-        {
-          table.current.map((tableRow, index) => 
-            // 一行
-            <tr key={tableRow.id}>
-              <th scope="row">
-                <input type="checkbox" id={String(tableRow.id)} name="row" onChange={updateCheckedRowWrap.bind(window, index)}/>
-              </th>
-              <th>
-                {tableRow.id}
-              </th>
-              <td>
-                {tableRow.date}
-              </td>
-              <td title={tableRow.mainCategory + "/" + tableRow.subCategory}>
-                {tableRow.mainCategory + "/" + tableRow.subCategory}
-              </td>
-              <td>
-                {tableRow.title}
-              </td>
-              <td>
-                {tableRow.amount}
-              </td>
-              <td title={tableRow.memo}>
-                {tableRow.memo}
-              </td>
-            </tr>
-          )
-        }
-      </tbody>
-    </table>
+    <div className="one-month-table-wrapper">
+      <table className="one-month-table">
+        {/* 先頭行 */}
+        <thead>
+          <tr>
+            <th scope="col"></th>
+            <th scope="col">
+              ID
+            </th>
+            <th scope="col">
+              <div className="one-month-table-header">
+                <div>
+                  日付
+                </div>
+                {/* <button className="one-month-table-filter-button"></button> */}
+              </div>
+            </th>
+            <th scope="col">
+              カテゴリ
+            </th>
+            <th scope="col">
+              件名
+            </th>
+            <th scope="col">
+              金額
+            </th>
+            <th scope="col">
+              備考
+            </th>
+          </tr>
+        </thead>
+        <tbody key={renderTable}>
+          {
+            table.current.map((tableRow, index) => 
+              // 一行
+              <tr key={tableRow.id}>
+                <th scope="row">
+                  <input type="checkbox" id={String(tableRow.id)} name="row" onChange={updateCheckedRowWrap.bind(window, index)}/>
+                </th>
+                <th>
+                  {tableRow.id}
+                </th>
+                <td>
+                  {tableRow.date}
+                </td>
+                <td title={tableRow.mainCategory + "/" + tableRow.subCategory}>
+                  {tableRow.mainCategory + "/" + tableRow.subCategory}
+                </td>
+                <td>
+                  {tableRow.title}
+                </td>
+                <td>
+                  {tableRow.amount}
+                </td>
+                <td title={tableRow.memo}>
+                  {tableRow.memo}
+                </td>
+              </tr>
+            )
+          }
+        </tbody>
+      </table>
+    </div>
   );
 }
 
