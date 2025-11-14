@@ -18,6 +18,44 @@ use crate::{
     other::{err_with_msg, err_with_msg_with_non_error, ErrorKinds, ThisResult}
 };
 
+macro_rules! key_match {
+    ( $map:expr, $key:expr, $( $p:pat => $field:ident ),*$(,)?) => {
+        match $key {
+            $(
+                $p => {
+                    if $field.is_some() {
+                        let e = ::serde::de::Error::duplicate_field(stringify!($field));
+                        error!("{:?}", e);
+                        return Err(e);
+                    }
+                    $field = Some($map.next_value().map_err(|e| { error!("{:?}", e); e })?)
+                },
+            )*
+            v => {
+                let e = ::serde::de::Error::unknown_field(v, &Self::Value::FIELDS);
+                error!("{:?}", e);
+                return Err(e);
+            }
+        }
+    };
+}
+macro_rules! field_check {
+    ( $target_struct:ident, $( $field:ident ),* $( ; $( $default_field:ident: $default_value:expr ),* )? ) => {
+        $target_struct {
+            $(
+                $field: $field.ok_or_else(|| {
+                    let e = ::serde::de::Error::missing_field(stringify!($field));
+                    error!("{:?}", e);
+                    e
+                })?,
+            )*
+            $($(
+                $default_field: $default_value,
+            )*)*
+        }
+    };
+}
+
 /// Payment or deposit data.
 #[derive(Debug)]
 pub struct CashIORecord {
@@ -293,43 +331,6 @@ impl<'de> Visitor<'de> for CashIORecordVisitor {
     fn visit_map<A>(self, map: A) -> Result<Self::Value, A::Error>
         where
             A: serde::de::MapAccess<'de>, {
-        macro_rules! key_match {
-            ( $map:expr, $key:expr, $( $p:pat => $field:ident ),*$(,)?) => {
-                match $key {
-                    $(
-                        $p => {
-                            if $field.is_some() {
-                                let e = ::serde::de::Error::duplicate_field(stringify!($field));
-                                error!("{:?}", e);
-                                return Err(e);
-                            }
-                            $field = Some($map.next_value().map_err(|e| { error!("{:?}", e); e })?)
-                        },
-                    )*
-                    v => {
-                        let e = ::serde::de::Error::unknown_field(v, &Self::Value::FIELDS);
-                        error!("{:?}", e);
-                        return Err(e);
-                    }
-                }
-            };
-        }
-        macro_rules! field_check {
-            ( $target_struct:ident,$( $field:ident ),*$(,)? ) => {
-                $target_struct {
-                    $(
-                        $field: $field.ok_or_else(|| {
-                            let e = ::serde::de::Error::missing_field(stringify!($field));
-                            error!("{:?}", e);
-                            e
-                        })?,
-                    )*
-                    created_at: None, 
-                    updated_at: None 
-                }
-            };
-        }
-
         let mut map: A = map;
         let mut id: Option<usize> = None;
         let mut date: Option<NaiveDate> = None;
@@ -354,9 +355,7 @@ impl<'de> Visitor<'de> for CashIORecordVisitor {
             );
         };
 
-        Ok(
-            field_check!(CashIORecord, id, date, main_category, sub_category, title, amount, memo)
-        )
+        Ok(field_check!(CashIORecord, id, date, main_category, sub_category, title, amount, memo; created_at: None, updated_at: None))
     }
 }
 
@@ -466,106 +465,19 @@ impl<'de> Visitor<'de> for CashIORecordOptionVisitor {
         let mut amount: Option<Option<isize>> = None;
         let mut memo: Option<Option<String>> = None;
         while let Some(key) = map.next_key::<String>()? {
-            match key.as_str() {
-                "id" | "_id" => {
-                    if id.is_some() {
-                        let e = de::Error::duplicate_field("id");
-                        error!("{:?}", e);
-                        return Err(e);
-                    }
-                    id = Some(map.next_value::<Option<usize>>().map_err(|e| { error!("{}", e); e })?);
-                }, 
-                "date" | "_date" => {
-                    if date.is_some() {
-                        let e = de::Error::duplicate_field("date");
-                        error!("{:?}", e);
-                        return Err(e);
-                    }
-                    date = Some(map.next_value::<Option<NaiveDate>>().map_err(|e| { error!("{}", e); e })?);
-                }, 
-                "main_category" | "_main_category" => {
-                    if main_category.is_some() {
-                        let e = de::Error::duplicate_field("main_category");
-                        error!("{:?}", e);
-                        return Err(e);
-                    }
-                    main_category = Some(map.next_value::<Option<String>>().map_err(|e| { error!("{}", e); e })?);
-                }, 
-                "sub_category" | "_sub_category" => {
-                    if sub_category.is_some() {
-                        let e = de::Error::duplicate_field("sub_category");
-                        error!("{:?}", e);
-                        return Err(e);
-                    }
-                    sub_category = Some(map.next_value::<Option<String>>().map_err(|e| { error!("{}", e); e })?);
-                }, 
-                "title" | "_title" => {
-                    if title.is_some() {
-                        let e = de::Error::duplicate_field("title");
-                        error!("{:?}", e);
-                        return Err(e);
-                    }
-                    title = Some(map.next_value::<Option<String>>().map_err(|e| { error!("{}", e); e })?);
-                }, 
-                "amount" | "_amount" => {
-                    if amount.is_some() {
-                        let e = de::Error::duplicate_field("amount");
-                        error!("{:?}", e);
-                        return Err(e);
-                    }
-                    amount = Some(map.next_value::<Option<isize>>().map_err(|e| { error!("{}", e); e })?);
-                }, 
-                "memo" | "_memo" => {
-                    if memo.is_some() {
-                        let e = de::Error::duplicate_field("memo");
-                        error!("{:?}", e);
-                        return Err(e);
-                    }
-                    memo = Some(map.next_value::<Option<String>>().map_err(|e| { error!("{}", e); e })?);
-                }, 
-                v => {
-                    let e = de::Error::unknown_field(v, &Self::Value::FIELDS);
-                    error!("{:?}", e);
-                    return Err(e);
-                }
-            }
+            key_match!(
+                map, 
+                key.as_str(),
+                "id" | "_id" => id,
+                "date" | "_date" => date,
+                "mainCategory" | "_mainCategory" => main_category,
+                "subCategory" | "_subCategory" => sub_category,
+                "title" | "_title" => title,
+                "amount" | "_amount" => amount,
+                "memo" | "_memo" => memo,
+            );
         }
-        Ok(CashIORecordOption { 
-            id: id.ok_or_else(|| {
-                let e = de::Error::missing_field("id");
-                error!("{}", e);
-                e
-            })?, 
-            date: date.ok_or_else(|| {
-                let e = de::Error::missing_field("date");
-                error!("{}", e);
-                e
-            })?, 
-            main_category: main_category.ok_or_else(|| {
-                let e = de::Error::missing_field("main_category");
-                error!("{}", e);
-                e
-            })?, 
-            sub_category: sub_category.ok_or_else(|| {
-                let e = de::Error::missing_field("sub_category");
-                error!("{}", e);
-                e
-            })?, 
-            title: title.ok_or_else(|| {
-                let e = de::Error::missing_field("title");
-                error!("{}", e);
-                e
-            })?, 
-            amount: amount.ok_or_else(|| {
-                let e = de::Error::missing_field("amount");
-                error!("{}", e);
-                e
-            })?, 
-            memo: memo.ok_or_else(|| {
-                let e = de::Error::missing_field("memo");
-                error!("{}", e);
-                e
-            })? 
-        })
+
+        Ok(field_check!(CashIORecordOption, id, date, main_category, sub_category, title, amount, memo))
     }
 }
