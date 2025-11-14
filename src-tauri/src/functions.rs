@@ -12,7 +12,7 @@ use crate::{
     category::{Category, MainCategoryWithSubs}, 
     // csv関連
     csv::{write_in_csv as write_in_csv_simple, read_from_csv as read_from_csv_simple}, 
-    // BD関連
+    // DB関連
     database::connect_db, other::{Error, ErrorKinds, ThisResult}
 };
 
