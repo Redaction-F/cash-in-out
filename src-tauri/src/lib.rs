@@ -12,10 +12,10 @@ pub use functions::{
     create_record, 
     delete_record_by_id, 
     get_all_categorys, 
-    add_main_category, 
-    remove_main_category, 
-    add_sub_category, 
-    remove_sub_category, 
+    create_main_category, 
+    delete_main_category, 
+    create_sub_category, 
+    delete_sub_category, 
     write_in_csv, 
     read_from_csv
 };

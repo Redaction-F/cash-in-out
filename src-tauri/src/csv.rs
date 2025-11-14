@@ -1,64 +1,66 @@
-// ファイル関連
+//! The mod for read and write a csv file.
+
+// import for file control
 use std::fs::File;
+// import for date
 use chrono::Local;
-// csv関連
+// import for csv
 use csv::{Reader, Writer};
-// logging用
-use log::error;
-// このcraet
+// this crate
 use crate::{
+    // CashIO
     cash_io::CashIORecord, 
-    other::{Error, ErrorKinds, ThisResult}
+    // other
+    other::{err_with_msg, ErrorKinds, ThisResult}
 };
 
+/// Write records of `CashIO` on a csv file.
 pub fn write_in_csv(records: Vec<CashIORecord>) -> ThisResult<()> {
+    // create file name from time
     let file_name: String = format!("{}.csv", Local::now().format("%Y_%m_%d_%H%M%S").to_string());
-    let mut writer: Writer<File> = csv::Writer::from_writer(File::create(file_name)
-        .map_err(|e| {
-            let e = Error::from_into_string(
+    // create a file
+    let mut writer: Writer<File> = csv::Writer::from_writer(
+        File::create(file_name)
+            .map_err(|e| err_with_msg!(
                 ErrorKinds::FileError, 
-                "Failed to open file.", 
+                "Failed to open a file.", 
                 "ファイルの書き出しに失敗しました。", 
                 e
-            );
-            error!("{}", e);
-            e
-        })?);
+            ))?
+    );
+
     for v in records.into_iter() {
-        writer.serialize(v)
-            .map_err(|e| {
-                let e = Error::from_into_string(
-                    ErrorKinds::FileError, 
-                    "Failed to write in file.", 
-                    "ファイルの書き出しに失敗しました。", 
-                    e
-                );
-                error!("{}", e);
+        // write data on the file
+        writer
+            .serialize(v)
+            .map_err(|e| err_with_msg!(
+                ErrorKinds::FileError, 
+                "Failed to write in a file.", 
+                "ファイルの書き出しに失敗しました。", 
                 e
-            })?;
+            ))?;
     };
     Ok(())
 }
 
+/// Read records of `CashIO from a csv file.
 pub fn read_from_csv(file_name: String) -> ThisResult<Vec<CashIORecord>> {
-    let mut reader: Reader<File> = csv::Reader::from_reader(File::open(file_name).map_err(|e| {
-        let e: Error = Error::from_into_string(
-            ErrorKinds::FileError, 
-            "Failed to open a file.", 
-            "ファイルのアクセスに失敗しました。", 
-            e
-        );
-        error!("{}", e);
-        e
-    })?);
-    reader.deserialize().collect::<Result<Vec<CashIORecord>, csv::Error>>().map_err(|e| {
-        let e: Error = Error::from_into_string(
+    let mut reader: Reader<File> = csv::Reader::from_reader(
+        File::open(file_name)
+            .map_err(|e| err_with_msg!(
+                ErrorKinds::FileError, 
+                "Failed to open a file.", 
+                "ファイルのアクセスに失敗しました。", 
+                e
+            ))?
+    );
+    reader
+        .deserialize()
+        .collect::<Result<Vec<CashIORecord>, csv::Error>>()
+        .map_err(|e| err_with_msg!(
             ErrorKinds::FileError, 
             "Failed to read a file as the data.", 
             "ファイルの読み込みに失敗しました。", 
             e
-        );
-        error!("{}", e);
-        e
-    })
+        ))
 }

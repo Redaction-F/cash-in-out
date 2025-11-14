@@ -1,22 +1,24 @@
-// Debug表示トレイト
+//! The mod for payment and deposit data.
+
+// import for debug
 use std::fmt::Debug;
-// 時刻管理
+// import for date
 use chrono::{Datelike, NaiveDate, NaiveDateTime};
-// logging用
+// import for logging
 use log::{error, warn};
-// Serialize(Frontendとの通信用)
+// import for Serialize and Dederialize(data for frontend)
 use serde::{de::{self, Deserialize, Visitor}, ser::{Serialize, SerializeStruct}};
-// DB操作用
+// import for database
 use sqlx::{mysql::MySql, FromRow, Pool, Row};
-// このcrate
+// this crate
 use crate::{
-    // データベース関連
-    database::remove_special_chars, 
-    // その他
-    other::{Error, ErrorKinds, ThisResult}
+    // database
+    database::RemoveSpecialChars, 
+    // other
+    other::{err_with_msg, err_with_msg_with_non_error, ErrorKinds, ThisResult}
 };
 
-// 出入金データベース一行分のデータ
+/// Payment or deposit data.
 #[derive(Debug)]
 pub struct CashIORecord {
     id: usize, 
@@ -33,9 +35,9 @@ pub struct CashIORecord {
 }
 
 impl CashIORecord {
-    // field群
+    /// Fields of this sturct.
     const FIELDS: [&'static str; 7] = ["id", "date", "mainCategory", "subCategory", "title", "amount", "memo"];
-    // CashIORecordを取得するSQL文
+    /// SQL statement for select `CashIO`.
     const SELECT_SQL: &'static str = "SELECT 
             cash_record.id, 
             cash_record.record_date, 
@@ -51,97 +53,94 @@ impl CashIORecord {
             INNER JOIN sub_category ON cash_record.category=sub_category.id 
             INNER JOIN main_category ON sub_category.super_category=main_category.id";
 
-    // データベースからすべて取得
-    pub async fn read_all(pool: &Pool<MySql>) -> ThisResult<Vec<CashIORecord>> {
-        sqlx::query_as::<_, CashIORecord>(format!(
-            r#"{};"#, 
-            CashIORecord::SELECT_SQL
-        ).as_str())
+    /// Select all records.
+    pub async fn select_all(pool: &Pool<MySql>) -> ThisResult<Vec<CashIORecord>> {
+        sqlx::query_as::<_, CashIORecord>(
+            format!(
+                r#"{};"#, 
+                CashIORecord::SELECT_SQL
+            ).as_str()
+        )
             .fetch_all(pool)
             .await
-            .map_err(|e| {
-                let e: Error = Error::from_into_string(
-                    ErrorKinds::DataBaseError, 
-                    "Failed to get CashIORecord from database.", 
-                    "データの取得に失敗しました。", 
-                    e
-                );
-                error!("{:?}", e);
+            .map_err(|e| err_with_msg!(
+                ErrorKinds::DataBaseError, 
+                "Failed to get CashIORecords from the database.", 
+                "データの取得に失敗しました。", 
                 e
-            })
+            ))
     }
 
-    // データベースからidで検索し取得
-    pub async fn read_by_id(pool: &Pool<MySql>, id: usize) -> ThisResult<Option<CashIORecord>> {
-        sqlx::query_as::<_, CashIORecord>(format!(
-            r#"{} WHERE cash_record.id={};"#, 
-            CashIORecord::SELECT_SQL, 
-            id
-        ).as_str())
+    /// Select a record by an id from the database.
+    pub async fn select_by_id(pool: &Pool<MySql>, id: usize) -> ThisResult<Option<CashIORecord>> {
+        use sqlx::Error as SqlxError;
+
+        sqlx::query_as::<_, CashIORecord>(
+            format!(
+                r#"{} WHERE cash_record.id={};"#, 
+                CashIORecord::SELECT_SQL, 
+                id
+            ).as_str()
+        )
             .fetch_one(pool)
             .await
-            .map_or_else(|e| {
-                match e {
-                    sqlx::Error::RowNotFound => Ok(None), 
-                    e => {
-                        let e: Error = Error::from_into_string(
-                            ErrorKinds::DataBaseError, 
-                            "Failed to get CashIORecord from database.", 
-                            "データの取得に失敗しました。", 
-                            e
-                        );
-                        error!("{:?}", e);
-                        Err(e)
-                    }
-                }
-            }, |v| Ok(Some(v)))
-    }
-
-    // データベースから月で検索し取得
-    pub async fn read_by_month(pool: &Pool<MySql>, date: NaiveDate) -> ThisResult<Vec<CashIORecord>> {
-        let first_day_in_month: NaiveDate = NaiveDate::from_ymd_opt(date.year(), date.month(), 1).ok_or_else(|| {
-            let e: Error = Error::from_msg(
-                ErrorKinds::DeveloperError, 
-                "Failed to get first day in the month.", 
-                "エラー: A-01"
-            );
-            error!("{:?}", e);
-            e
-        })?;
-        let last_day_in_month: NaiveDate = {
-            let (y, m): (i32, u32) = if date.month() == 12 { (date.year() + 1, date.month()) } else { (date.year(), date.month() + 1) };
-            NaiveDate::from_ymd_opt(y, m, 1).map(|v| v.pred_opt()).flatten().ok_or_else(|| {
-                let e: Error = Error::from_msg(
-                    ErrorKinds::DeveloperError, 
-                    "Failed to get last day in the month.", 
-                    "エラー: A-01"
-                );
-                error!("{:?}", e);
-                e
-            })?
-        };
-        sqlx::query_as::<_, CashIORecord>(format!(
-            r#"{} WHERE cash_record.record_date BETWEEN "{}" AND "{}" ORDER BY cash_record.record_date;"#, 
-            CashIORecord::SELECT_SQL, 
-            first_day_in_month, 
-            last_day_in_month
-        ).as_str())
-            .fetch_all(pool)
-            .await
-            .map_or_else(|e| {
-                let e: Error = Error::from_into_string(
+            .map_or_else(
+                |e| err_with_msg_with_non_error!(
+                    SqlxError::RowNotFound => None;
                     ErrorKinds::DataBaseError, 
-                    "Failed to get CashIORecord from database.", 
+                    "Failed to get CashIORecords from the database.", 
                     "データの取得に失敗しました。", 
                     e
-                );
-                error!("{:?}", e);
-                Err(e)
-            }, |v| Ok(v))
+                ), 
+                |v| Ok(Some(v))
+            )
     }
 
-    // データベースから条件によって検索し取得
-    pub async fn read_by_option(pool: &Pool<MySql>, option: CashIORecordOption) -> ThisResult<Vec<CashIORecord>> {
+    /// Select a record by a month from the database.
+    pub async fn select_by_month(pool: &Pool<MySql>, date: NaiveDate) -> ThisResult<Vec<CashIORecord>> {
+        // first day of the month
+        let first_day_in_month: NaiveDate = NaiveDate::from_ymd_opt(date.year(), date.month(), 1)
+            .ok_or_else(|| err_with_msg!(
+                ErrorKinds::DeveloperError, 
+                "Failed to get first day in the month.", 
+                "予期せぬエラーが発生しました。(E001)"
+            ))?;
+        // last day of the month
+        let last_day_in_month: NaiveDate = {
+            let (next_y, next_m): (i32, u32) = if date.month() == 12 { 
+                (date.year() + 1, date.month()) 
+            } else { 
+                (date.year(), date.month() + 1) 
+            };
+            NaiveDate::from_ymd_opt(next_y, next_m, 1)
+                .map(|v| v.pred_opt())
+                .flatten()
+                .ok_or_else(|| err_with_msg!(
+                    ErrorKinds::DeveloperError, 
+                    "Failed to get last day in the month.", 
+                    "予期せぬエラーが発生しました。(E001)"
+                ))?
+        };
+        sqlx::query_as::<_, CashIORecord>(
+            format!(
+                r#"{} WHERE cash_record.record_date BETWEEN "{}" AND "{}" ORDER BY cash_record.record_date;"#, 
+                CashIORecord::SELECT_SQL, 
+                first_day_in_month, 
+                last_day_in_month
+            ).as_str()
+        )
+            .fetch_all(pool)
+            .await
+            .map_err(|e| err_with_msg!(
+                ErrorKinds::DataBaseError, 
+                "Failed to get CashIORecords from the database.", 
+                "データの取得に失敗しました。", 
+                e
+            ))
+    }
+
+    /// Select records which match an option.
+    pub async fn select_by_option(pool: &Pool<MySql>, option: CashIORecordOption) -> ThisResult<Vec<CashIORecord>> {
         sqlx::query_as::<_, CashIORecord>(format!(
             r#"{}{}{}{}{}{}{}{}{};"#, 
             CashIORecord::SELECT_SQL, 
@@ -156,58 +155,54 @@ impl CashIORecord {
         ).as_str())
             .fetch_all(pool)
             .await
-            .map_err(|e| {
-                let e: Error = Error::from_into_string(
-                    ErrorKinds::DataBaseError, 
-                    "Failed to get CashIORecord from database.", 
-                    "データの取得に失敗しました。", 
-                    e
-                );
-                error!("{:?}", e);
+            .map_err(|e| err_with_msg!(
+                ErrorKinds::DataBaseError, 
+                "Failed to get CashIORecord from database.", 
+                "データの取得に失敗しました。", 
                 e
-            })
+            ))
     }
 
-    // データベースを更新
+    /// Update a record of the database.
     pub async fn update(self, pool: &Pool<MySql>) -> ThisResult<()> {
-        sqlx::query(format!(
-            r#"UPDATE cash_record 
-            INNER JOIN sub_category ON sub_category.name="{}" 
-            INNER JOIN main_category ON main_category.name="{}" AND sub_category.super_category=main_category.id
-            SET 
-                cash_record.record_date="{}", 
-                cash_record.category=sub_category.id, 
-                cash_record.title="{}", 
-                cash_record.amount={}, 
-                cash_record.memo="{}" 
-            WHERE cash_record.id={}"#, 
-            self.sub_category, 
-            self.main_category, 
-            self.date, 
-            remove_special_chars(&self.title)
-                .unwrap_or_else(|e| { warn!(r#"Title of the record({}) contains '"', ';', '-'"#, self.title); e }), 
-            self.amount, 
-            remove_special_chars(&self.memo)
-                .unwrap_or_else(|e| { warn!(r#"Title of the record({}) contains '"', ';', '-'"#, self.title); e }), 
-            self.id
-        ).as_str())
+        sqlx::query(
+            format!(
+                r#"UPDATE cash_record 
+                INNER JOIN sub_category ON sub_category.name="{}" 
+                INNER JOIN main_category ON main_category.name="{}" AND sub_category.super_category=main_category.id
+                SET 
+                    cash_record.record_date="{}", 
+                    cash_record.category=sub_category.id, 
+                    cash_record.title="{}", 
+                    cash_record.amount={}, 
+                    cash_record.memo="{}" 
+                WHERE cash_record.id={}"#, 
+                self.sub_category, 
+                self.main_category, 
+                self.date, 
+                (&self.title)
+                    .remove_special_chars()
+                    .unwrap_or_else(|e| { warn!(r#"Title of the record({}) contains '"', ';', or '-'"#, self.title); e }), 
+                self.amount, 
+                (&self.memo)
+                    .remove_special_chars()
+                    .unwrap_or_else(|e| { warn!(r#"Title of the record({}) contains '"', ';', or '-'"#, self.title); e }), 
+                self.id
+            ).as_str()
+        )
             .execute(pool)
             .await
-            .map_err(|e| {
-                let e: Error = Error::from_into_string(
-                    ErrorKinds::DataBaseError, 
-                    "Failed to update CashIORecord on database.", 
-                    "データの更新に失敗しました。", 
-                    e
-                );
-                error!("{:?}", e);
+            .map_err(|e| err_with_msg!(
+                ErrorKinds::DataBaseError, 
+                "Failed to update a CashIORecord on the database.", 
+                "データの更新に失敗しました。", 
                 e
-            })?;
+            ))?;
         Ok(())
     }
 
-    // データベースに新規作成
-    pub async fn create(self, pool: &Pool<MySql>) -> ThisResult<()> {
+    /// Insert a record to the database.
+    pub async fn insert(self, pool: &Pool<MySql>) -> ThisResult<()> {
         sqlx::query(format!(
             r#"INSERT 
             INTO cash_record (record_date, category, title, amount, memo) 
@@ -221,29 +216,28 @@ impl CashIORecord {
                 INNER JOIN main_category ON sub_category.super_category=main_category.id 
             WHERE main_category.name="{}" AND sub_category.name="{}";"#, 
             self.date, 
-            remove_special_chars(&self.title)
+            (&self.title)
+                .remove_special_chars()
                 .unwrap_or_else(|e| { warn!(r#"Title of the record({}) contains '"', ';', '-'"#, self.title); e }), 
             self.amount, 
-            remove_special_chars(&self.memo)
-                .unwrap_or_else(|e| { warn!(r#"Title of the record({}) contains '"', ';', '-'"#, self.title); e }), 
+            (&self.memo)
+                .remove_special_chars()
+                .unwrap_or_else(|e| { warn!(r#"Title of the record({}) contains '"', ';', or '-'"#, self.title); e }), 
             self.main_category, 
             self.sub_category
         ).as_str())
             .execute(pool)
             .await
-            .map_err(|e| {
-                let e: Error = Error::from_into_string(
-                    ErrorKinds::DataBaseError, 
-                    "Failed to create CashIORecord on database.", 
-                    "データの作成に失敗しました。", 
-                    e
-                );
-                error!("{:?}", e);
+            .map_err(|e| err_with_msg!(
+                ErrorKinds::DataBaseError, 
+                "Failed to insert a CashIORecord on the database.", 
+                "データの作成に失敗しました。", 
                 e
-            })?;
+            ))?;
         Ok(())
     }
 
+    /// Delete a record of the database.
     pub async fn delete(self, pool: &Pool<MySql>) -> ThisResult<()> {
         sqlx::query(format!(
             r#"DELETE FROM cash_record WHERE id={}"#, 
@@ -251,21 +245,17 @@ impl CashIORecord {
         ).as_str())
             .execute(pool)
             .await
-            .map_err(|e| {
-                let e = Error::from_into_string(
-                    ErrorKinds::DataBaseError, 
-                    "Failed to delete CashIORecord on database.", 
-                    "データの削除に失敗しました。", 
-                    e
-                );
-                error!("{:?}", e);
+            .map_err(|e| err_with_msg!(
+                ErrorKinds::DataBaseError, 
+                "Failed to delete a CashIORecord on the database.", 
+                "データの削除に失敗しました。", 
                 e
-            })?;
+            ))?;
         Ok(())
     }
 }
 
-// CashIORecordをjsonデータに変換(backendからfrontendへの通信用)
+// convert a `CashIORecord` to a frontend data
 impl Serialize for CashIORecord {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
         where
@@ -282,7 +272,7 @@ impl Serialize for CashIORecord {
     }
 }
 
-// jsonデータをCashIORecordに変換(frontendからbackendへの通信用)
+// convert a frontend data to a CashIORecord
 impl<'de> Deserialize<'de> for CashIORecord {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
         where
@@ -303,6 +293,43 @@ impl<'de> Visitor<'de> for CashIORecordVisitor {
     fn visit_map<A>(self, map: A) -> Result<Self::Value, A::Error>
         where
             A: serde::de::MapAccess<'de>, {
+        macro_rules! key_match {
+            ( $map:expr, $key:expr, $( $p:pat => $field:ident ),*$(,)?) => {
+                match $key {
+                    $(
+                        $p => {
+                            if $field.is_some() {
+                                let e = ::serde::de::Error::duplicate_field(stringify!($field));
+                                error!("{:?}", e);
+                                return Err(e);
+                            }
+                            $field = Some($map.next_value().map_err(|e| { error!("{:?}", e); e })?)
+                        },
+                    )*
+                    v => {
+                        let e = ::serde::de::Error::unknown_field(v, &Self::Value::FIELDS);
+                        error!("{:?}", e);
+                        return Err(e);
+                    }
+                }
+            };
+        }
+        macro_rules! field_check {
+            ( $target_struct:ident,$( $field:ident ),*$(,)? ) => {
+                $target_struct {
+                    $(
+                        $field: $field.ok_or_else(|| {
+                            let e = ::serde::de::Error::missing_field(stringify!($field));
+                            error!("{:?}", e);
+                            e
+                        })?,
+                    )*
+                    created_at: None, 
+                    updated_at: None 
+                }
+            };
+        }
+
         let mut map: A = map;
         let mut id: Option<usize> = None;
         let mut date: Option<NaiveDate> = None;
@@ -311,117 +338,29 @@ impl<'de> Visitor<'de> for CashIORecordVisitor {
         let mut title: Option<String> = None;
         let mut amount: Option<isize> = None;
         let mut memo: Option<String> = None;
+
+
         while let Some(key) = map.next_key::<String>()? {
-            match key.as_str() {
-                "id" | "_id" => {
-                    if id.is_some() {
-                        let e = de::Error::duplicate_field("id");
-                        error!("{:?}", e);
-                        return Err(e);
-                    }
-                    id = Some(map.next_value::<usize>().map_err(|e| { error!("{:?}", e); e })?)
-                }, 
-                "date" | "_date" => {
-                    if date.is_some() {
-                        let e = de::Error::duplicate_field("date");
-                        error!("{:?}", e);
-                        return Err(e);
-                    }
-                    date = {
-                        let date: NaiveDate = map.next_value::<NaiveDate>().map_err(|e| { error!("{:?}", e); e })?;
-                        Some(date)
-                    };
-                }, 
-                "mainCategory" | "_mainCategory" => {
-                    if main_category.is_some() {
-                        let e = de::Error::duplicate_field("main_category");
-                        error!("{:?}", e);
-                        return Err(e);
-                    }
-                    main_category = Some(map.next_value::<String>().map_err(|e| { error!("{:?}", e); e })?)
-                }, 
-                "subCategory" | "_subCategory" => {
-                    if sub_category.is_some() {
-                        let e = de::Error::duplicate_field("sub_category");
-                        error!("{:?}", e);
-                        return Err(e);
-                    }
-                    sub_category = Some(map.next_value::<String>().map_err(|e| { error!("{:?}", e); e })?)
-                }, 
-                "title" | "_title" => {
-                    if title.is_some() {
-                        let e = de::Error::duplicate_field("title");
-                        error!("{:?}", e);
-                        return Err(e);
-                    }
-                    title = Some(map.next_value::<String>().map_err(|e| { error!("{:?}", e); e })?)
-                }, 
-                "amount" | "_amount" => {
-                    if amount.is_some() {
-                        let e = de::Error::duplicate_field("amount");
-                        error!("{:?}", e);
-                        return Err(e);
-                    }
-                    amount = Some(map.next_value::<isize>().map_err(|e| { error!("{:?}", e); e })?)
-                }, 
-                "memo" | "_memo" => {
-                    if memo.is_some() {
-                        let e = de::Error::duplicate_field("memo");
-                        error!("{:?}", e);
-                        return Err(e);
-                    }
-                    memo = Some(map.next_value::<String>().map_err(|e| { error!("{:?}", e); e })?);
-                }, 
-                v => {
-                    let e = de::Error::unknown_field(v, &Self::Value::FIELDS);
-                    error!("{:?}", e);
-                    return Err(e);
-                }
-            }
+            key_match!(
+                map,
+                key.as_str(),
+                "id" | "_id" => id,
+                "date" | "_date" => date,
+                "mainCategory" | "_mainCategory" => main_category,
+                "subCategory" | "_subCategory" => sub_category,
+                "title" | "_title" => title,
+                "amount" | "_amount" => amount,
+                "memo" | "_memo" => memo
+            );
         };
-        Ok(CashIORecord { 
-            id: id.ok_or_else(|| {
-                let e = de::Error::missing_field("id");
-                error!("{:?}", e);
-                e
-            })?, 
-            date: date.ok_or_else(|| {
-                let e = de::Error::missing_field("date");
-                error!("{:?}", e);
-                e
-            })?, 
-            main_category: main_category.ok_or_else(|| {
-                let e = de::Error::missing_field("main_category");
-                error!("{:?}", e);
-                e
-            })?, 
-            sub_category: sub_category.ok_or_else(|| {
-                let e = de::Error::missing_field("sub_category");
-                error!("{:?}", e);
-                e
-            })?, 
-            title: title.ok_or_else(|| {
-                let e = de::Error::missing_field("title");
-                error!("{:?}", e);
-                e
-            })?, 
-            amount: amount.ok_or_else(|| {
-                let e = de::Error::missing_field("amount");
-                error!("{:?}", e);
-                e
-            })?, 
-            memo: memo.ok_or_else(|| {
-                let e = de::Error::missing_field("memo");
-                error!("{:?}", e);
-                e
-            })?, 
-            created_at: None, 
-            updated_at: None 
-        })
+
+        Ok(
+            field_check!(CashIORecord, id, date, main_category, sub_category, title, amount, memo)
+        )
     }
 }
 
-// データベースからCashRecordに変換
+// convert a database row to a CashIORecord
 impl<'r, R> FromRow<'r, R> for CashIORecord 
     where
         R: Row,
@@ -441,7 +380,7 @@ impl<'r, R> FromRow<'r, R> for CashIORecord
         let title: String = row.try_get::<'_, String, _>("title")?;
         let amount: isize = <isize as TryFrom<i32>>::try_from(row.try_get::<'_, i32, _>("amount")?)
             .map_err(|e| sqlx::Error::Decode(Box::new(e)))?;
-        let memo: String = row.try_get::<'_, Option<String>, _>("memo")?.unwrap_or_default();
+        let memo: String = row.try_get::<'_, String, _>("memo")?;
         let created_at: NaiveDateTime = row.try_get::<'_, NaiveDateTime, _>("created_at")?;
         let updated_at: NaiveDateTime = row.try_get::<'_, NaiveDateTime, _>("updated_at")?;
         Ok(CashIORecord { 
