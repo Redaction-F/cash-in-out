@@ -1,6 +1,7 @@
 use std::{fmt::{Debug, Display}, error};
 use serde::Serialize;
 
+pub use crate::{err_with_msg, err_with_msg_with_non_error};
 pub type ThisResult<T> = Result<T, Error>;
 
 // エラー型
@@ -91,4 +92,67 @@ impl Display for ErrorMsg {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.for_developer)
     }
+}
+
+#[macro_export]
+macro_rules! err_with_msg {
+    ( $err_kind:expr, $dev_msg:expr, $usr_msg:expr ) => {
+        {
+            let e = $crate::other::Error::from_msg($err_kind, $dev_msg, $usr_msg);
+            ::log::error!("{}", e);
+            e
+        }
+    };
+    ( $err_kind:expr, $dev_msg:expr, $usr_msg:expr, $err:expr ) => {
+        {
+            let e = $crate::other::Error::from_into_string($err_kind, $dev_msg, $usr_msg, $err);
+            ::log::error!("{}", e);
+            e
+        }
+    };
+    ( $( $err_pat:pat $( if $b:expr )? => $err_kind:expr, $dev_msg:expr, $usr_msg:expr $( , $err_msg:expr )? );* ;; $other_err_kind:expr, $other_dev_msg:expr, $other_usr_msg:expr, $err:expr ) => {
+        {
+            let e = match $err {
+                $(
+                    $err_pat $( if $b )* => err_with_msg!(@inner_1, $err, $err_kind, $dev_msg, $usr_msg $( , $err_msg )* ),
+                )*
+                _ => $crate::other::Error::from_into_string(
+                    $other_err_kind, 
+                    $other_dev_msg, 
+                    $other_usr_msg, 
+                    $err
+                )
+            };
+            ::log::error!("{}", e);
+            e
+        }
+    };
+    ( @inner_1, $err:expr, $err_kind:expr, $dev_msg:expr, $usr_msg:expr ) => {
+        $crate::other::Error::from_into_string(
+            $err_kind, 
+            $dev_msg, 
+            $usr_msg, 
+            $err
+        )
+    };
+    ( @inner_1, $err:expr, $err_kind:expr, $dev_msg:expr, $usr_msg:expr, $err_msg:expr ) => {
+        $crate::other::Error::from_into_string(
+            $err_kind, 
+            $dev_msg, 
+            $usr_msg, 
+            $err_msg
+        )
+    };
+}
+
+#[macro_export]
+macro_rules! err_with_msg_with_non_error {
+    ( $( $non_err:pat $( if $b:expr )? => $value:expr ),*; $data_kind:expr, $dev_msg:expr, $usr_msg:expr, $err:expr ) => {
+        match $err {
+            $(
+                $non_err $( if $b )* => Ok($value),
+            )*
+            _ => Err(err_with_msg!($data_kind, $dev_msg, $usr_msg, $err))
+        }
+    };
 }

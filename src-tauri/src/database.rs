@@ -1,56 +1,63 @@
-// 環境変数管理
+//! The mod for database controls.
+
+// import for env
 use std::env;
-// DB操作用
+// import for database
 use sqlx::{
-    // MySQLとの通信用
     mysql::{MySql, MySqlPool}, 
     Pool
 };
-// logging用
-use log::{error, info};
-// このcrate
-use crate::other::{Error, ErrorKinds, ThisResult};
+// import for logging
+use log::info;
+// this crete
+use crate::{
+    // other
+    other::{err_with_msg, ErrorKinds, ThisResult}
+};
 
-// データベースと通信確立
+/// Connect a database which has `CashIO` records.
 pub async fn connect_db() -> ThisResult<Pool<MySql>> {
-    // 環境変数からデータベースURLを取得
+    // get database url
     let database_url: String = env::var("DATABASE_URL")
-        .map_err(|e| {
-            let e: Error = Error::from_into_string(
-                ErrorKinds::DataBaseError, 
-                "Failed to find env var \"DATABASE_URL\"", 
-                "データベースが設定されていません。開発者にお問い合わせください。", 
-                e
-            );
-            error!("{:?}", e);
+        .map_err(|e: env::VarError| err_with_msg!(
+            ErrorKinds::DeveloperError, 
+            r#"Failed to find env var "DATABASE_URL""#, 
+            "予期せぬエラーが発生しました。(E002)", 
             e
-        })?;
-    // データベースと通信
+        ))?;
+
+    // connect the database
     let pool: Pool<MySql> = MySqlPool::connect(&database_url)
         .await
-        .map_err(|e| {
-            let e: Error = Error::from_into_string(
-                ErrorKinds::DataBaseError, 
-                "Failed to connect database", 
-                "データベースと通信できませんでした。データベースの状態を確認してください。", 
-                e
-            );
-            error!("{:?}", e);
+        .map_err(|e| err_with_msg!(
+            ErrorKinds::DataBaseError, 
+            "Failed to connect the database", 
+            "データベースと通信できませんでした。データベースの状態を確認してください。", 
             e
-        })?;
+        ))?;
+
     // logging
     info!("Succeed in connecting database.");
+
     Ok(pool)
 }
 
-// インジェクション防止用等に特定の文字を除く
-pub fn remove_special_chars(value: &String) -> Result<String, String> {
-    let res: String = value.chars().filter(|c| {
-        !['\"', ';', '-'].contains(c)
-    }).collect::<String>();
-    if res.len() == value.len() {
-        Ok(res)
-    } else {
-        Err(res)
+/// The trait for remove special chars for preventing SQL injections.
+pub trait RemoveSpecialChars: Sized {
+    /// Remove special chars which may occur a SQL injection.
+    fn remove_special_chars(&self) -> Result<Self, Self>;
+}
+
+
+impl RemoveSpecialChars for String {
+    fn remove_special_chars(&self) -> Result<Self, Self> {
+        let res: String = self.chars().filter(|c| {
+            !['\"', ';', '-'].contains(c)
+        }).collect::<String>();
+        if res.len() == self.len() {
+            Ok(res)
+        } else {
+            Err(res)
+        }
     }
 }

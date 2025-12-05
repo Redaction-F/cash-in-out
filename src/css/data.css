@@ -35,6 +35,13 @@
 /* ====== */
 
 /* === For Table.tsx === */
+.one-month-table-wrapper {
+  /* 最大高さ */
+  max-height: 56vh;
+  /* スクロール */
+  overflow-y: scroll;
+}
+
 /* 一か月分の表 */
 .one-month-table {
   /* 隣り合うボーダーの枠線を重ねる */
@@ -62,32 +69,32 @@
 }
 
 /* 先頭行1列目 */
-.one-month-table thead :nth-child(1) {
+.one-month-table th:nth-child(1) {
   width: 20px;
 }
 
 /* 先頭行2列目 */
-.one-month-table thead :nth-child(2) {
+.one-month-table th:nth-child(2) {
   width: 60px;
 }
 
 /* 先頭行3列目 */
-.one-month-table thead :nth-child(3) {
+.one-month-table th:nth-child(3) {
   width: 80px;
 }
 
 /* 先頭行4列目 */
-.one-month-table thead :nth-child(4) {
+.one-month-table th:nth-child(4) {
   width: 80px;
 }
 
 /* 先頭行5列目 */
-.one-month-table thead :nth-child(5) {
+.one-month-table th:nth-child(5) {
   width: 150px;
 }
 
 /* 先頭行6列目 */
-.one-month-table thead :nth-child(6) {
+.one-month-table th:nth-child(6) {
   width: 80px;
 }
 
@@ -102,6 +109,18 @@
   /* 右揃え */
   text-align: right;
 }
+
+.one-month-table-header {
+  display: flex;
+  justify-content: space-between;
+}
+
+.one-month-table-filter-button {
+  width: 20px;
+  min-width: 20px;
+  height: 20px;
+  display: block;
+}
 /* ====== */
 
 /* === For IOButtons.tsx === */
@@ -109,8 +128,6 @@
 .io-container {
   /* 子要素を横並びに配置 */
   display: flex;
-  /* 内余白(下) */
-  padding-bottom: 5vh;
 }
 
 /* ファイル選択 */

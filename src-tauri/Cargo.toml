@@ -1,6 +1,6 @@
 [package]
 name = "cash-in-out"
-version = "0.0.0"
+version = "0.1.0"
 description = "A Tauri App"
 authors = ["you"]
 edition = "2021"
@@ -35,6 +35,7 @@ chrono = { version = "0.4.39", features = [ "serde" ] }
 # DB
 async-std = { version = "1.13.0", features = [ "attributes" ] }
 sqlx = { version = "0.8.3", features = [ "mysql", "runtime-async-std-native-tls", "chrono" ] }
+# tauri-plugin-dialog = "2"
 
 [features]
 # This feature is used for production builds or when a dev server is not specified, DO NOT REMOVE!!
