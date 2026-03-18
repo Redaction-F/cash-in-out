@@ -1,0 +1,115 @@
+/* === For EditButtons.tsx === */
+/* 編集ボタンラッパー */
+.edit-buttons {
+  /* 子要素を横並びに配置 */
+  display: flex;
+  /* 内余白(下) */
+  padding-bottom: 5vh;
+}
+
+/* 編集ボタン */
+.edit-button {
+  /* 幅 */
+  width: 10%;
+}
+
+/* 編集ボタン(ホバー時) */
+.edit-button:hover {
+  /* 背景色 */
+  background-color: var(--color-content-3);
+}
+
+/* 編集ボタン(クリック時) */
+.edit-button:active {
+  /* 背景色 */
+  background-color: var(--color-content-1);
+}
+
+/* 編集ボタン(非アクティブ時) */
+.edit-button:disabled {
+  /* 背景色 */
+  background-color: var(--color-content-2);
+  /* カーソルを非アクティブに */
+  cursor: not-allowed;
+  /* 透明度 */
+  opacity: 0.3;
+}
+/* ====== */
+
+/* === For Inputs.tsx === */
+/* 入力項目 */
+.input-row {
+  /* 子要素を横並びに配置 */
+  display: flex;
+  /* 外余白 */
+  margin: 2vh 1% 2vh 1%;
+}
+
+/* 入力項目ラベル */
+.input-label {
+  /* クリックで入力に移れる */
+  cursor: pointer;
+  /* flexbox内に配置できる */
+  display: block;
+  /* 幅 */
+  width: 20%;
+}
+
+/* 入力部分 */
+.input-input {
+  /* 背景色 */
+  background-color: var(--color-content-2);
+  /* 枠 */
+  border: 0px;
+  /* 枠(下) */
+  border-bottom: 1px solid;
+  /* 枠(下)の色 */
+  border-bottom-color: var(--color-text);
+  /* 内余白 */
+  padding: 0 1% 0 1%;
+  /* 幅 */
+  width: 80%;
+}
+
+/* 入力部分(非アクティブ時) */
+.input-input:disabled {
+  /* 背景色 */
+  background-color: var(--color-background);
+  /* テキスト色 */
+  color: var(--color-background);
+}
+
+/* 数字入力のスピンボタンを消す */
+.input-input[type="number"]::-webkit-inner-spin-button,
+.input-input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+}
+
+/* テキスト入力部分 */
+.input-textarea {
+  /* 背景色 */
+  background-color: var(--color-content-2);
+  /* 枠 */
+  border: 0px;
+  /* 枠(下) */
+  border-bottom: 1px solid;
+  /* 枠(下)の色 */
+  border-bottom-color: var(--color-text);
+  /* 高さ */
+  height: 15vh;
+  /* 内余白 */
+  padding: 0 1% 0 1%;
+  /* 幅 */
+  width: 80%;
+}
+
+/* テキスト入力時(非アクティブ時) */
+.input-textarea:disabled {
+  /* 背景色 */
+  background-color: var(--color-background);
+}
+
+.input-enter-button {
+  display: none;
+}
+/* ====== */
