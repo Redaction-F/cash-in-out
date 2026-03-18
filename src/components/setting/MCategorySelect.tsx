@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { JSX, useEffect, useRef, useState } from "react";
 import { MCategory } from "../../logic";
 import { MCategorySelectFunctions, SCategorySelectFunctions } from "./logic";
 

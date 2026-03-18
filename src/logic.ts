@@ -17,9 +17,9 @@ export type SpecialFunctions = {
 // displayの操作用
 export type DisplayHandler = {
   // displayであるdivタグの要素
-  content: RefObject<HTMLDivElement>, 
+  content: RefObject<HTMLDivElement | null>, 
   // displayを操作するtab
-  tab: RefObject<HTMLInputElement>, 
+  tab: RefObject<HTMLInputElement | null>, 
   // このdisplayから遷移するときの処理
   // 返り値は遷移可能か否か
   onClose: () => Promise<boolean>, 
