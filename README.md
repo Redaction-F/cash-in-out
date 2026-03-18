@@ -10,3 +10,12 @@ This template should help get you started developing with Tauri, React and Types
 ```
 pnpm tauri dev
 ```
+
+# プロジェクトの開始
+## cargo サブコマンドの導入
+```
+cargo install tauri-cli
+```
+```
+cargo install create-tauri-app
+```
