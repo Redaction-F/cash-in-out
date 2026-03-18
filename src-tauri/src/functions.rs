@@ -1,144 +1,188 @@
-// 日付
+//! The mod for API functions.
+
+// import for date
 use chrono::NaiveDate;
-// logging用
-use log::error;
-// DB操作用
+// import for database
 use sqlx::{MySql, Pool};
-// このcrate
+// this crate
 use crate::{
-    // 出入金データ
-    cash_io::CashIORecord, 
-    // カテゴリ
-    category::{Category, MainCategoryWithSubs}, 
-    // csv関連
-    csv::{write_in_csv as write_in_csv_simple, read_from_csv as read_from_csv_simple}, 
-    // BD関連
-    database::connect_db, other::{Error, ErrorKinds, ThisResult}
+    // database record
+    cash_io::CashIORecord,
+    // category
+    category::{Category, MainCategoryWithSubs},
+    // for reading and writing csv
+    csv::{read_from_csv as read_from_csv_simple, write_in_csv as write_in_csv_simple},
+    // database
+    database::connect_db,
+    // other
+    other::{err_with_msg, ErrorKinds, ThisResult},
 };
 
+/// Get all records.
+#[tauri::command]
+pub async fn get_all_categorys() -> ThisResult<Vec<MainCategoryWithSubs>> {
+    // connect the database
+    let pool: Pool<MySql> = connect_db().await?;
+
+    // select all records on the database
+    MainCategoryWithSubs::select_all(&pool).await
+}
+
+/// Get all records for a month.
+/// # Error
+/// Parameter `year` or `month` is invaid.
 #[tauri::command]
 pub async fn get_records_by_month(year: usize, month: usize) -> ThisResult<Vec<CashIORecord>> {
-    // データベースと通信確立
+    // connect the database
     let pool: Pool<MySql> = connect_db().await?;
-    // データベースを指定月分読む
-    CashIORecord::read_by_month(&pool, NaiveDate::from_ymd_opt(year as i32, month as u32, 1)
-        .ok_or_else(|| {
-            let e: Error = Error::from_msg(ErrorKinds::DeveloperError, "Invaid year or month", "日付の解析に失敗しました。開発者にお問い合わせください。");
-            error!("{}", e);
-            e
-        })?)
-        .await
+
+    // select records for the month on the database
+    CashIORecord::select_by_month(
+        &pool,
+        NaiveDate::from_ymd_opt(year as i32, month as u32, 1).ok_or_else(|| {
+            err_with_msg!(
+                ErrorKinds::DeveloperError,
+                "Invaid year or month",
+                "予期せぬエラーが発生しました。(E003)"
+            )
+        })?,
+    )
+    .await
 }
 
+/// Get a record with an id.
 #[tauri::command]
 pub async fn get_record_by_id(id: usize) -> ThisResult<Option<CashIORecord>> {
-    // データベースと通信確立
+    // connect the database
     let pool: Pool<MySql> = connect_db().await?;
-    // idからデータを選択
-    CashIORecord::read_by_id(&pool, id).await
+
+    // select a record with the id on the database
+    CashIORecord::select_by_id(&pool, id).await
 }
 
+/// Update a record.
 #[tauri::command]
 pub async fn update_record(changed_record: CashIORecord) -> ThisResult<()> {
-    // データベースと通信確立
+    // connect the database
     let pool: Pool<MySql> = connect_db().await?;
-    // データを更新
+
+    // update a record on the database
     changed_record.update(&pool).await
 }
 
+/// Create a record.
 #[tauri::command]
 pub async fn create_record(new_record: CashIORecord) -> ThisResult<()> {
-    // データベースと通信確立
+    // connect the database
     let pool: Pool<MySql> = connect_db().await?;
-    // データを作成
-    new_record.create(&pool).await
+
+    // insert a record on the database
+    new_record.insert(&pool).await
 }
 
+/// Delete a record by an
+///
+///
+///  id.
 #[tauri::command]
 pub async fn delete_record_by_id(id: usize) -> ThisResult<()> {
-    // データベースと通信確立
+    // connect the database
     let pool: Pool<MySql> = connect_db().await?;
-    // データを削除
-    CashIORecord::read_by_id(&pool, id)
+
+    // delete a record on the database
+    CashIORecord::select_by_id(&pool, id)
         .await?
         .ok_or_else(|| {
-            let e = Error::from_msg(
-                ErrorKinds::DataBaseError, 
-                "Failed to get CashIORecord which has the id.", 
+            err_with_msg!(
+                ErrorKinds::DataBaseError,
+                "Failed to get a CashIORecord which has the id.",
                 "そのIdのデータは既に存在しません。"
-            );
-            error!("{:?}", e);
-            e
+            )
         })?
         .delete(&pool)
         .await
 }
 
+/// Create a main category.
 #[tauri::command]
-pub async fn get_all_categorys() -> ThisResult<Vec<MainCategoryWithSubs>> {
-    // データベースと通信確立
+pub async fn create_main_category(new_main_category_name: String) -> ThisResult<()> {
+    // connect the database
     let pool: Pool<MySql> = connect_db().await?;
-    // カテゴリをすべて読む
-    MainCategoryWithSubs::read_all(&pool).await
+
+    // insert a main category on the database
+    Category::insert_main(&pool, &new_main_category_name).await
 }
 
+/// Delete a main category.
 #[tauri::command]
-pub async fn add_main_category(new_main_category_name: String) -> ThisResult<()> {
-    // データベースと通信確立
+pub async fn delete_main_category(main_category_name: String) -> ThisResult<()> {
+    // connect the database
     let pool: Pool<MySql> = connect_db().await?;
-    // メインカテゴリを追加
-    Category::add_main(&pool, &new_main_category_name).await
-}
 
-#[tauri::command]
-pub async fn remove_main_category(main_category_name: String) -> ThisResult<()> {
-    // データベースと通信確立
-    let pool: Pool<MySql> = connect_db().await?;
-    // メインカテゴリを削除
-    Category::read_by_name_default(&pool, &main_category_name)
+    // delete a main category on the database
+    Category::select_by_name_default(&pool, &main_category_name)
         .await?
-        .remove_main(&pool)
+        .delete_main(&pool)
         .await
 }
 
+/// Create a sub category.
 #[tauri::command]
-pub async fn add_sub_category(new_sub_category_name: String, main_category_name: String) -> ThisResult<()> {
-    // データベースと通信確立
+pub async fn create_sub_category(
+    new_sub_category_name: String,
+    main_category_name: String,
+) -> ThisResult<()> {
+    // connect the database
     let pool: Pool<MySql> = connect_db().await?;
-    // サブカテゴリを追加
-    Category::read_by_name_default(&pool, &main_category_name)
+
+    // insert a sub category on the database
+    Category::select_by_name_default(&pool, &main_category_name)
         .await?
-        .add_sub(&pool, &new_sub_category_name)
+        .insert_sub(&pool, &new_sub_category_name)
         .await
 }
 
+/// Delete a sub category.
 #[tauri::command]
-pub async fn remove_sub_category(sub_category_name: String, main_category_name: String) -> ThisResult<()> {
-    // データベースと通信確立
+pub async fn delete_sub_category(
+    sub_category_name: String,
+    main_category_name: String,
+) -> ThisResult<()> {
+    // connect the database
     let pool: Pool<MySql> = connect_db().await?;
-    // サブカテゴリを削除
-    Category::read_by_name(&pool, &main_category_name, &sub_category_name)
+
+    // delete a sub category on the database
+    Category::select_by_name(&pool, &main_category_name, &sub_category_name)
         .await?
-        .remove_sub(&pool)
+        .delete_sub(&pool)
         .await
 }
 
+/// Write data of the datatbase on a csv file.
 #[tauri::command]
 pub async fn write_in_csv() -> ThisResult<()> {
-    // データベースと通信確立
+    // connect the database
     let pool: Pool<MySql> = connect_db().await?;
-    let records: Vec<CashIORecord> = CashIORecord::read_all(&pool).await?;
-    write_in_csv_simple(records)?;
-    Ok(())
+
+    // select all records
+    let records: Vec<CashIORecord> = CashIORecord::select_all(&pool).await?;
+
+    // write on csv
+    write_in_csv_simple(records)
 }
 
+/// Read data a csv file and create the data on the database.
 #[tauri::command]
 pub async fn read_from_csv(file_name: String) -> ThisResult<()> {
-    // データベースと通信確立
+    // connect the database
     let pool: Pool<MySql> = connect_db().await?;
+
+    // read csv
     let reader: Vec<CashIORecord> = read_from_csv_simple(file_name)?;
+
+    // insert data on the database
     for v in reader.into_iter() {
-        v.create(&pool).await?;
-    };
+        v.insert(&pool).await?;
+    }
     Ok(())
 }
