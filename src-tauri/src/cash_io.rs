@@ -7,15 +7,18 @@ use chrono::{Datelike, NaiveDate, NaiveDateTime};
 // import for logging
 use log::{error, warn};
 // import for Serialize and Dederialize(data for frontend)
-use serde::{de::{self, Deserialize, Visitor}, ser::{Serialize, SerializeStruct}};
+use serde::{
+    de::{self, Deserialize, Visitor},
+    ser::{Serialize, SerializeStruct},
+};
 // import for database
 use sqlx::{mysql::MySql, FromRow, Pool, Row};
 // this crate
 use crate::{
     // database
-    database::RemoveSpecialChars, 
+    database::RemoveSpecialChars,
     // other
-    other::{err_with_msg, err_with_msg_with_non_error, ErrorKinds, ThisResult}
+    other::{err_with_msg, err_with_msg_with_non_error, ErrorKinds, ThisResult},
 };
 
 macro_rules! key_match {
@@ -59,22 +62,30 @@ macro_rules! field_check {
 /// Payment or deposit data.
 #[derive(Debug)]
 pub struct CashIORecord {
-    id: usize, 
-    date: NaiveDate, 
-    main_category: String, 
-    sub_category: String, 
-    title: String, 
-    amount: isize, 
-    memo: String, 
+    id: usize,
+    date: NaiveDate,
+    main_category: String,
+    sub_category: String,
+    title: String,
+    amount: isize,
+    memo: String,
     #[allow(dead_code)]
-    created_at: Option<NaiveDateTime>, 
+    created_at: Option<NaiveDateTime>,
     #[allow(dead_code)]
-    updated_at: Option<NaiveDateTime>, 
+    updated_at: Option<NaiveDateTime>,
 }
 
 impl CashIORecord {
     /// Fields of this sturct.
-    const FIELDS: [&'static str; 7] = ["id", "date", "mainCategory", "subCategory", "title", "amount", "memo"];
+    const FIELDS: [&'static str; 7] = [
+        "id",
+        "date",
+        "mainCategory",
+        "subCategory",
+        "title",
+        "amount",
+        "memo",
+    ];
     /// SQL statement for select `CashIO`.
     const SELECT_SQL: &'static str = "SELECT 
             cash_record.id, 
@@ -93,20 +104,17 @@ impl CashIORecord {
 
     /// Select all records.
     pub async fn select_all(pool: &Pool<MySql>) -> ThisResult<Vec<CashIORecord>> {
-        sqlx::query_as::<_, CashIORecord>(
-            format!(
-                r#"{};"#, 
-                CashIORecord::SELECT_SQL
-            ).as_str()
-        )
+        sqlx::query_as::<_, CashIORecord>(format!(r#"{};"#, CashIORecord::SELECT_SQL).as_str())
             .fetch_all(pool)
             .await
-            .map_err(|e| err_with_msg!(
-                ErrorKinds::DataBaseError, 
-                "Failed to get CashIORecords from the database.", 
-                "データの取得に失敗しました。", 
-                e
-            ))
+            .map_err(|e| {
+                err_with_msg!(
+                    ErrorKinds::DataBaseError,
+                    "Failed to get CashIORecords from the database.",
+                    "データの取得に失敗しました。",
+                    e
+                )
+            })
     }
 
     /// Select a record by an id from the database.
@@ -115,49 +123,59 @@ impl CashIORecord {
 
         sqlx::query_as::<_, CashIORecord>(
             format!(
-                r#"{} WHERE cash_record.id={};"#, 
-                CashIORecord::SELECT_SQL, 
+                r#"{} WHERE cash_record.id={};"#,
+                CashIORecord::SELECT_SQL,
                 id
-            ).as_str()
-        )
-            .fetch_one(pool)
-            .await
-            .map_or_else(
-                |e| err_with_msg_with_non_error!(
-                    SqlxError::RowNotFound => None;
-                    ErrorKinds::DataBaseError, 
-                    "Failed to get CashIORecords from the database.", 
-                    "データの取得に失敗しました。", 
-                    e
-                ), 
-                |v| Ok(Some(v))
             )
+            .as_str(),
+        )
+        .fetch_one(pool)
+        .await
+        .map_or_else(
+            |e| {
+                err_with_msg_with_non_error!(
+                    SqlxError::RowNotFound => None;
+                    ErrorKinds::DataBaseError,
+                    "Failed to get CashIORecords from the database.",
+                    "データの取得に失敗しました。",
+                    e
+                )
+            },
+            |v| Ok(Some(v)),
+        )
     }
 
     /// Select a record by a month from the database.
-    pub async fn select_by_month(pool: &Pool<MySql>, date: NaiveDate) -> ThisResult<Vec<CashIORecord>> {
+    pub async fn select_by_month(
+        pool: &Pool<MySql>,
+        date: NaiveDate,
+    ) -> ThisResult<Vec<CashIORecord>> {
         // first day of the month
         let first_day_in_month: NaiveDate = NaiveDate::from_ymd_opt(date.year(), date.month(), 1)
-            .ok_or_else(|| err_with_msg!(
-                ErrorKinds::DeveloperError, 
-                "Failed to get first day in the month.", 
+            .ok_or_else(|| {
+            err_with_msg!(
+                ErrorKinds::DeveloperError,
+                "Failed to get first day in the month.",
                 "予期せぬエラーが発生しました。(E001)"
-            ))?;
+            )
+        })?;
         // last day of the month
         let last_day_in_month: NaiveDate = {
-            let (next_y, next_m): (i32, u32) = if date.month() == 12 { 
-                (date.year() + 1, date.month()) 
-            } else { 
-                (date.year(), date.month() + 1) 
+            let (next_y, next_m): (i32, u32) = if date.month() == 12 {
+                (date.year() + 1, date.month())
+            } else {
+                (date.year(), date.month() + 1)
             };
             NaiveDate::from_ymd_opt(next_y, next_m, 1)
                 .map(|v| v.pred_opt())
                 .flatten()
-                .ok_or_else(|| err_with_msg!(
-                    ErrorKinds::DeveloperError, 
-                    "Failed to get last day in the month.", 
-                    "予期せぬエラーが発生しました。(E001)"
-                ))?
+                .ok_or_else(|| {
+                    err_with_msg!(
+                        ErrorKinds::DeveloperError,
+                        "Failed to get last day in the month.",
+                        "予期せぬエラーが発生しました。(E001)"
+                    )
+                })?
         };
         sqlx::query_as::<_, CashIORecord>(
             format!(
@@ -178,27 +196,55 @@ impl CashIORecord {
     }
 
     /// Select records which match an option.
-    pub async fn select_by_option(pool: &Pool<MySql>, option: CashIORecordOption) -> ThisResult<Vec<CashIORecord>> {
-        sqlx::query_as::<_, CashIORecord>(format!(
-            r#"{}{}{}{}{}{}{}{}{};"#, 
-            CashIORecord::SELECT_SQL, 
-            if option.is_all_none() { " WHERE" } else { "" }, 
-            option.id.map_or_else(|| String::new(), |v| format!(r#" cash_record.id={}"#, v)), 
-            option.date.map_or_else(|| String::new(), |v| format!(r#" cash_record.date="{}""#, v)), 
-            option.main_category.map_or_else(|| String::new(), |v| format!(r#" cash_record.main_category_name="{}""#, v)), 
-            option.sub_category.map_or_else(|| String::new(), |v| format!(r#" cash_record.sub_category_name="{}""#, v)), 
-            option.title.map_or_else(|| String::new(), |v| format!(r#" cash_record.title="{}""#, v)), 
-            option.amount.map_or_else(|| String::new(), |v| format!(r#" cash_record.amount={}"#, v)), 
-            option.memo.map_or_else(|| String::new(), |v| format!(r#" cash_record.memo="{}""#, v)), 
-        ).as_str())
-            .fetch_all(pool)
-            .await
-            .map_err(|e| err_with_msg!(
-                ErrorKinds::DataBaseError, 
-                "Failed to get CashIORecord from database.", 
-                "データの取得に失敗しました。", 
+    pub async fn select_by_option(
+        pool: &Pool<MySql>,
+        option: CashIORecordOption,
+    ) -> ThisResult<Vec<CashIORecord>> {
+        sqlx::query_as::<_, CashIORecord>(
+            format!(
+                r#"{}{}{}{}{}{}{}{}{};"#,
+                CashIORecord::SELECT_SQL,
+                if option.is_all_none() { " WHERE" } else { "" },
+                option
+                    .id
+                    .map_or_else(|| String::new(), |v| format!(r#" cash_record.id={}"#, v)),
+                option.date.map_or_else(
+                    || String::new(),
+                    |v| format!(r#" cash_record.date="{}""#, v)
+                ),
+                option.main_category.map_or_else(
+                    || String::new(),
+                    |v| format!(r#" cash_record.main_category_name="{}""#, v)
+                ),
+                option.sub_category.map_or_else(
+                    || String::new(),
+                    |v| format!(r#" cash_record.sub_category_name="{}""#, v)
+                ),
+                option.title.map_or_else(
+                    || String::new(),
+                    |v| format!(r#" cash_record.title="{}""#, v)
+                ),
+                option.amount.map_or_else(
+                    || String::new(),
+                    |v| format!(r#" cash_record.amount={}"#, v)
+                ),
+                option.memo.map_or_else(
+                    || String::new(),
+                    |v| format!(r#" cash_record.memo="{}""#, v)
+                ),
+            )
+            .as_str(),
+        )
+        .fetch_all(pool)
+        .await
+        .map_err(|e| {
+            err_with_msg!(
+                ErrorKinds::DataBaseError,
+                "Failed to get CashIORecord from database.",
+                "データの取得に失敗しました。",
                 e
-            ))
+            )
+        })
     }
 
     /// Update a record of the database.
@@ -241,8 +287,9 @@ impl CashIORecord {
 
     /// Insert a record to the database.
     pub async fn insert(self, pool: &Pool<MySql>) -> ThisResult<()> {
-        sqlx::query(format!(
-            r#"INSERT 
+        sqlx::query(
+            format!(
+                r#"INSERT 
             INTO cash_record (record_date, category, title, amount, memo) 
             SELECT 
                 "{}", 
@@ -252,43 +299,54 @@ impl CashIORecord {
                 "{}" 
             FROM sub_category 
                 INNER JOIN main_category ON sub_category.super_category=main_category.id 
-            WHERE main_category.name="{}" AND sub_category.name="{}";"#, 
-            self.date, 
-            (&self.title)
-                .remove_special_chars()
-                .unwrap_or_else(|e| { warn!(r#"Title of the record({}) contains '"', ';', '-'"#, self.title); e }), 
-            self.amount, 
-            (&self.memo)
-                .remove_special_chars()
-                .unwrap_or_else(|e| { warn!(r#"Title of the record({}) contains '"', ';', or '-'"#, self.title); e }), 
-            self.main_category, 
-            self.sub_category
-        ).as_str())
-            .execute(pool)
-            .await
-            .map_err(|e| err_with_msg!(
-                ErrorKinds::DataBaseError, 
-                "Failed to insert a CashIORecord on the database.", 
-                "データの作成に失敗しました。", 
+            WHERE main_category.name="{}" AND sub_category.name="{}";"#,
+                self.date,
+                (&self.title).remove_special_chars().unwrap_or_else(|e| {
+                    warn!(
+                        r#"Title of the record({}) contains '"', ';', '-'"#,
+                        self.title
+                    );
+                    e
+                }),
+                self.amount,
+                (&self.memo).remove_special_chars().unwrap_or_else(|e| {
+                    warn!(
+                        r#"Title of the record({}) contains '"', ';', or '-'"#,
+                        self.title
+                    );
+                    e
+                }),
+                self.main_category,
+                self.sub_category
+            )
+            .as_str(),
+        )
+        .execute(pool)
+        .await
+        .map_err(|e| {
+            err_with_msg!(
+                ErrorKinds::DataBaseError,
+                "Failed to insert a CashIORecord on the database.",
+                "データの作成に失敗しました。",
                 e
-            ))?;
+            )
+        })?;
         Ok(())
     }
 
     /// Delete a record of the database.
     pub async fn delete(self, pool: &Pool<MySql>) -> ThisResult<()> {
-        sqlx::query(format!(
-            r#"DELETE FROM cash_record WHERE id={}"#, 
-            self.id
-        ).as_str())
+        sqlx::query(format!(r#"DELETE FROM cash_record WHERE id={}"#, self.id).as_str())
             .execute(pool)
             .await
-            .map_err(|e| err_with_msg!(
-                ErrorKinds::DataBaseError, 
-                "Failed to delete a CashIORecord on the database.", 
-                "データの削除に失敗しました。", 
-                e
-            ))?;
+            .map_err(|e| {
+                err_with_msg!(
+                    ErrorKinds::DataBaseError,
+                    "Failed to delete a CashIORecord on the database.",
+                    "データの削除に失敗しました。",
+                    e
+                )
+            })?;
         Ok(())
     }
 }
@@ -296,25 +354,54 @@ impl CashIORecord {
 // convert a `CashIORecord` to a frontend data
 impl Serialize for CashIORecord {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-        where
-            S: serde::Serializer {
-        let mut s: <S as serde::Serializer>::SerializeStruct = serializer.serialize_struct("CashIORecord", 7)?;
-        s.serialize_field("id", &self.id).map_err(|e| { error!("{:?}", e); e })?;
-        s.serialize_field("date", &self.date).map_err(|e| { error!("{:?}", e); e })?;
-        s.serialize_field("mainCategory", &self.main_category).map_err(|e| { error!("{:?}", e); e })?;
-        s.serialize_field("subCategory", &self.sub_category).map_err(|e| { error!("{:?}", e); e })?;
-        s.serialize_field("title", &self.title).map_err(|e| { error!("{:?}", e); e })?;
-        s.serialize_field("amount", &self.amount).map_err(|e| { error!("{:?}", e); e })?;
-        s.serialize_field("memo", &self.memo).map_err(|e| { error!("{:?}", e); e })?;
-        s.end().map_err(|e| { error!("{:?}", e); e })
+    where
+        S: serde::Serializer,
+    {
+        let mut s: <S as serde::Serializer>::SerializeStruct =
+            serializer.serialize_struct("CashIORecord", 7)?;
+        s.serialize_field("id", &self.id).map_err(|e| {
+            error!("{:?}", e);
+            e
+        })?;
+        s.serialize_field("date", &self.date).map_err(|e| {
+            error!("{:?}", e);
+            e
+        })?;
+        s.serialize_field("mainCategory", &self.main_category)
+            .map_err(|e| {
+                error!("{:?}", e);
+                e
+            })?;
+        s.serialize_field("subCategory", &self.sub_category)
+            .map_err(|e| {
+                error!("{:?}", e);
+                e
+            })?;
+        s.serialize_field("title", &self.title).map_err(|e| {
+            error!("{:?}", e);
+            e
+        })?;
+        s.serialize_field("amount", &self.amount).map_err(|e| {
+            error!("{:?}", e);
+            e
+        })?;
+        s.serialize_field("memo", &self.memo).map_err(|e| {
+            error!("{:?}", e);
+            e
+        })?;
+        s.end().map_err(|e| {
+            error!("{:?}", e);
+            e
+        })
     }
 }
 
 // convert a frontend data to a CashIORecord
 impl<'de> Deserialize<'de> for CashIORecord {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-        where
-            D: de::Deserializer<'de> {
+    where
+        D: de::Deserializer<'de>,
+    {
         deserializer.deserialize_struct("CashIORecord", &CashIORecord::FIELDS, CashIORecordVisitor)
     }
 }
@@ -329,8 +416,9 @@ impl<'de> Visitor<'de> for CashIORecordVisitor {
     }
 
     fn visit_map<A>(self, map: A) -> Result<Self::Value, A::Error>
-        where
-            A: serde::de::MapAccess<'de>, {
+    where
+        A: serde::de::MapAccess<'de>,
+    {
         let mut map: A = map;
         let mut id: Option<usize> = None;
         let mut date: Option<NaiveDate> = None;
@@ -339,7 +427,6 @@ impl<'de> Visitor<'de> for CashIORecordVisitor {
         let mut title: Option<String> = None;
         let mut amount: Option<isize> = None;
         let mut memo: Option<String> = None;
-
 
         while let Some(key) = map.next_key::<String>()? {
             key_match!(
@@ -353,22 +440,24 @@ impl<'de> Visitor<'de> for CashIORecordVisitor {
                 "amount" | "_amount" => amount,
                 "memo" | "_memo" => memo
             );
-        };
+        }
 
-        Ok(field_check!(CashIORecord, id, date, main_category, sub_category, title, amount, memo; created_at: None, updated_at: None))
+        Ok(
+            field_check!(CashIORecord, id, date, main_category, sub_category, title, amount, memo; created_at: None, updated_at: None),
+        )
     }
 }
 
 // convert a database row to a CashIORecord
-impl<'r, R> FromRow<'r, R> for CashIORecord 
-    where
-        R: Row,
-        &'r str: sqlx::ColumnIndex<R>,
-        i32: sqlx::Type<R::Database> + sqlx::Decode<'r, R::Database>,
-        NaiveDate: sqlx::Type<R::Database> + sqlx::Decode<'r, R::Database>,
-        String: sqlx::Type<R::Database> + sqlx::Decode<'r, R::Database>,
-        Option<String>: sqlx::Type<R::Database> + sqlx::Decode<'r, R::Database>,
-        NaiveDateTime: sqlx::Type<R::Database> + sqlx::Decode<'r, R::Database>,
+impl<'r, R> FromRow<'r, R> for CashIORecord
+where
+    R: Row,
+    &'r str: sqlx::ColumnIndex<R>,
+    i32: sqlx::Type<R::Database> + sqlx::Decode<'r, R::Database>,
+    NaiveDate: sqlx::Type<R::Database> + sqlx::Decode<'r, R::Database>,
+    String: sqlx::Type<R::Database> + sqlx::Decode<'r, R::Database>,
+    Option<String>: sqlx::Type<R::Database> + sqlx::Decode<'r, R::Database>,
+    NaiveDateTime: sqlx::Type<R::Database> + sqlx::Decode<'r, R::Database>,
 {
     fn from_row(row: &'r R) -> Result<Self, sqlx::Error> {
         let id: usize = <usize as TryFrom<i32>>::try_from(row.try_get::<'_, i32, _>("id")?)
@@ -382,32 +471,40 @@ impl<'r, R> FromRow<'r, R> for CashIORecord
         let memo: String = row.try_get::<'_, String, _>("memo")?;
         let created_at: NaiveDateTime = row.try_get::<'_, NaiveDateTime, _>("created_at")?;
         let updated_at: NaiveDateTime = row.try_get::<'_, NaiveDateTime, _>("updated_at")?;
-        Ok(CashIORecord { 
-            id, 
-            date, 
+        Ok(CashIORecord {
+            id,
+            date,
             main_category,
-            sub_category,  
-            title, 
-            amount, 
-            memo, 
-            created_at: Some(created_at), 
-            updated_at: Some(updated_at)
+            sub_category,
+            title,
+            amount,
+            memo,
+            created_at: Some(created_at),
+            updated_at: Some(updated_at),
         })
     }
 }
 
 pub struct CashIORecordOption {
-    id: Option<usize>, 
-    date: Option<NaiveDate>, 
-    main_category: Option<String>, 
-    sub_category: Option<String>, 
-    title: Option<String>, 
-    amount: Option<isize>, 
-    memo: Option<String>, 
+    id: Option<usize>,
+    date: Option<NaiveDate>,
+    main_category: Option<String>,
+    sub_category: Option<String>,
+    title: Option<String>,
+    amount: Option<isize>,
+    memo: Option<String>,
 }
 
 impl CashIORecordOption {
-    const FIELDS: [&'static str; 7] = ["id", "date", "main_category", "sub_category", "title", "amount", "memo"];
+    const FIELDS: [&'static str; 7] = [
+        "id",
+        "date",
+        "main_category",
+        "sub_category",
+        "title",
+        "amount",
+        "memo",
+    ];
 
     fn is_all_none(&self) -> bool {
         self.id.is_none()
@@ -422,25 +519,56 @@ impl CashIORecordOption {
 
 impl Serialize for CashIORecordOption {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-        where
-            S: serde::Serializer {
-        let mut s: <S as serde::Serializer>::SerializeStruct = serializer.serialize_struct("CashIORecordOption", 7)?;
-        s.serialize_field("id", &self.id).map_err(|e| { error!("{}", e); e })?;
-        s.serialize_field("date", &self.id).map_err(|e| { error!("{}", e); e })?;
-        s.serialize_field("main_category", &self.id).map_err(|e| { error!("{}", e); e })?;
-        s.serialize_field("sub_category", &self.id).map_err(|e| { error!("{}", e); e })?;
-        s.serialize_field("title", &self.id).map_err(|e| { error!("{}", e); e })?;
-        s.serialize_field("amount", &self.id).map_err(|e| { error!("{}", e); e })?;
-        s.serialize_field("memo", &self.id).map_err(|e| { error!("{}", e); e })?;
-        s.end().map_err(|e| { error!("{}", e); e })
+    where
+        S: serde::Serializer,
+    {
+        let mut s: <S as serde::Serializer>::SerializeStruct =
+            serializer.serialize_struct("CashIORecordOption", 7)?;
+        s.serialize_field("id", &self.id).map_err(|e| {
+            error!("{}", e);
+            e
+        })?;
+        s.serialize_field("date", &self.id).map_err(|e| {
+            error!("{}", e);
+            e
+        })?;
+        s.serialize_field("main_category", &self.id).map_err(|e| {
+            error!("{}", e);
+            e
+        })?;
+        s.serialize_field("sub_category", &self.id).map_err(|e| {
+            error!("{}", e);
+            e
+        })?;
+        s.serialize_field("title", &self.id).map_err(|e| {
+            error!("{}", e);
+            e
+        })?;
+        s.serialize_field("amount", &self.id).map_err(|e| {
+            error!("{}", e);
+            e
+        })?;
+        s.serialize_field("memo", &self.id).map_err(|e| {
+            error!("{}", e);
+            e
+        })?;
+        s.end().map_err(|e| {
+            error!("{}", e);
+            e
+        })
     }
 }
 
 impl<'de> Deserialize<'de> for CashIORecordOption {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-        where
-            D: de::Deserializer<'de> {
-        deserializer.deserialize_struct("CashIORecordOption", &CashIORecordOption::FIELDS, CashIORecordOptionVisitor)
+    where
+        D: de::Deserializer<'de>,
+    {
+        deserializer.deserialize_struct(
+            "CashIORecordOption",
+            &CashIORecordOption::FIELDS,
+            CashIORecordOptionVisitor,
+        )
     }
 }
 
@@ -454,8 +582,9 @@ impl<'de> Visitor<'de> for CashIORecordOptionVisitor {
     }
 
     fn visit_map<A>(self, map: A) -> Result<Self::Value, A::Error>
-        where
-            A: de::MapAccess<'de>, {
+    where
+        A: de::MapAccess<'de>,
+    {
         let mut map: A = map;
         let mut id: Option<Option<usize>> = None;
         let mut date: Option<Option<NaiveDate>> = None;
@@ -466,7 +595,7 @@ impl<'de> Visitor<'de> for CashIORecordOptionVisitor {
         let mut memo: Option<Option<String>> = None;
         while let Some(key) = map.next_key::<String>()? {
             key_match!(
-                map, 
+                map,
                 key.as_str(),
                 "id" | "_id" => id,
                 "date" | "_date" => date,
@@ -478,6 +607,15 @@ impl<'de> Visitor<'de> for CashIORecordOptionVisitor {
             );
         }
 
-        Ok(field_check!(CashIORecordOption, id, date, main_category, sub_category, title, amount, memo))
+        Ok(field_check!(
+            CashIORecordOption,
+            id,
+            date,
+            main_category,
+            sub_category,
+            title,
+            amount,
+            memo
+        ))
     }
 }

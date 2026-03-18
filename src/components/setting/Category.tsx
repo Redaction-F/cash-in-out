@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { invoke } from "@tauri-apps/api/tauri";
+import { invoke } from "@tauri-apps/api/core";
 import { MCategory, SCategory } from "../../logic";
 import { CategoryFunctions, MCategorySelectFunctions, SCategorySelectFunctions } from "./logic";
 import MCategorySelect from "./MCategorySelect";

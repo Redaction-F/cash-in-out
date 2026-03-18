@@ -1,6 +1,6 @@
 import { RefObject } from "react";
 import { DisplayName } from "./components/app_display/logic";
-import { invoke } from "@tauri-apps/api";
+import { invoke } from "@tauri-apps/api/core";
 
 // .tsxファイルで用いる型の定義
 // 具体的な機能はrustで書く

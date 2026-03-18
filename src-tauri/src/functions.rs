@@ -7,15 +7,15 @@ use sqlx::{MySql, Pool};
 // this crate
 use crate::{
     // database record
-    cash_io::CashIORecord, 
+    cash_io::CashIORecord,
     // category
-    category::{Category, MainCategoryWithSubs}, 
+    category::{Category, MainCategoryWithSubs},
     // for reading and writing csv
-    csv::{write_in_csv as write_in_csv_simple, read_from_csv as read_from_csv_simple}, 
+    csv::{read_from_csv as read_from_csv_simple, write_in_csv as write_in_csv_simple},
     // database
-    database::connect_db, 
+    database::connect_db,
     // other
-    other::{err_with_msg, ErrorKinds, ThisResult}
+    other::{err_with_msg, ErrorKinds, ThisResult},
 };
 
 /// Get all records.
@@ -38,14 +38,16 @@ pub async fn get_records_by_month(year: usize, month: usize) -> ThisResult<Vec<C
 
     // select records for the month on the database
     CashIORecord::select_by_month(
-        &pool, 
-        NaiveDate::from_ymd_opt(year as i32, month as u32, 1)
-            .ok_or_else(|| err_with_msg!(
-                ErrorKinds::DeveloperError, 
-                "Invaid year or month", 
+        &pool,
+        NaiveDate::from_ymd_opt(year as i32, month as u32, 1).ok_or_else(|| {
+            err_with_msg!(
+                ErrorKinds::DeveloperError,
+                "Invaid year or month",
                 "予期せぬエラーが発生しました。(E003)"
-            ))?
-    ).await
+            )
+        })?,
+    )
+    .await
 }
 
 /// Get a record with an id.
@@ -79,22 +81,24 @@ pub async fn create_record(new_record: CashIORecord) -> ThisResult<()> {
 }
 
 /// Delete a record by an
-/// 
-/// 
+///
+///
 ///  id.
 #[tauri::command]
 pub async fn delete_record_by_id(id: usize) -> ThisResult<()> {
     // connect the database
     let pool: Pool<MySql> = connect_db().await?;
-    
+
     // delete a record on the database
     CashIORecord::select_by_id(&pool, id)
         .await?
-        .ok_or_else(|| err_with_msg!(
-            ErrorKinds::DataBaseError, 
-            "Failed to get a CashIORecord which has the id.", 
-            "そのIdのデータは既に存在しません。"
-        ))?
+        .ok_or_else(|| {
+            err_with_msg!(
+                ErrorKinds::DataBaseError,
+                "Failed to get a CashIORecord which has the id.",
+                "そのIdのデータは既に存在しません。"
+            )
+        })?
         .delete(&pool)
         .await
 }
@@ -124,7 +128,10 @@ pub async fn delete_main_category(main_category_name: String) -> ThisResult<()> 
 
 /// Create a sub category.
 #[tauri::command]
-pub async fn create_sub_category(new_sub_category_name: String, main_category_name: String) -> ThisResult<()> {
+pub async fn create_sub_category(
+    new_sub_category_name: String,
+    main_category_name: String,
+) -> ThisResult<()> {
     // connect the database
     let pool: Pool<MySql> = connect_db().await?;
 
@@ -135,10 +142,12 @@ pub async fn create_sub_category(new_sub_category_name: String, main_category_na
         .await
 }
 
-
 /// Delete a sub category.
 #[tauri::command]
-pub async fn delete_sub_category(sub_category_name: String, main_category_name: String) -> ThisResult<()> {
+pub async fn delete_sub_category(
+    sub_category_name: String,
+    main_category_name: String,
+) -> ThisResult<()> {
     // connect the database
     let pool: Pool<MySql> = connect_db().await?;
 
@@ -174,6 +183,6 @@ pub async fn read_from_csv(file_name: String) -> ThisResult<()> {
     // insert data on the database
     for v in reader.into_iter() {
         v.insert(&pool).await?;
-    };
+    }
     Ok(())
 }

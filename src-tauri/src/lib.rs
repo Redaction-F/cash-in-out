@@ -1,21 +1,12 @@
-mod other;
-mod functions;
-mod database;
-mod category;
 mod cash_io;
+mod category;
 mod csv;
+mod database;
+mod functions;
+mod other;
 
 pub use functions::{
-    get_records_by_month, 
-    get_record_by_id, 
-    update_record, 
-    create_record, 
-    delete_record_by_id, 
-    get_all_categorys, 
-    create_main_category, 
-    delete_main_category, 
-    create_sub_category, 
-    delete_sub_category, 
-    write_in_csv, 
-    read_from_csv
+    create_main_category, create_record, create_sub_category, delete_main_category,
+    delete_record_by_id, delete_sub_category, get_all_categorys, get_record_by_id,
+    get_records_by_month, read_from_csv, update_record, write_in_csv,
 };

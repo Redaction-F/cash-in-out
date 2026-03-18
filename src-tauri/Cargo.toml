@@ -1,6 +1,6 @@
 [package]
 name = "cash-in-out"
-version = "0.1.0"
+version = "0.2.0"
 description = "A Tauri App"
 authors = ["you"]
 edition = "2021"
@@ -8,10 +8,12 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [build-dependencies]
-tauri-build = { version = "1", features = [] }
+tauri-build = { version = "2", features = [] }
 
 [dependencies]
-tauri = { version = "1", features = [ "dialog-open", "dialog-confirm", "dialog-message", "shell-open"] }
+# tauri = { version = "1", features = [ "dialog-open", "dialog-confirm", "dialog-message", "shell-open"] }
+tauri = { version = "2", features = [] }
+tauri-plugin-opener = "2"
 
 # csv読み取り、変換
 csv = "1.3.0"
@@ -35,6 +37,7 @@ chrono = { version = "0.4.39", features = [ "serde" ] }
 # DB
 async-std = { version = "1.13.0", features = [ "attributes" ] }
 sqlx = { version = "0.8.3", features = [ "mysql", "runtime-async-std-native-tls", "chrono" ] }
+tauri-plugin-dialog = "2"
 # tauri-plugin-dialog = "2"
 
 [features]
