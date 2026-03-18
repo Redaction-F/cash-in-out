@@ -1,0 +1,98 @@
+/* 
+  色
+  light   dark
+  #efefef #1f1f1f 背景
+  #dfdfdf #2f2f2f ボタン背景(押下時)
+  #cfcfcf #3f3f3f ボタン背景
+  #bfbfbf #4f4f4f ボタン背景(ホバー時)
+  #2f2f2f #dfdfdf 境界、テキスト
+
+  大きさはvh, vwもしくは%で指定
+  ただし枠線とそこに関わる部分はpxで指定
+*/
+
+/* === For All === */
+:root {
+  --color-background: #efefef;
+  --color-content-1: #dfdfdf;
+  --color-content-2: #cfcfcf;
+  --color-content-3: #bfbfbf;
+  --color-text: #2f2f2f;
+  /* 背景色 */
+  background-color: var(--color-background);
+  /* スクロール不可 */
+  overflow: hidden;
+}
+
+:root, button, input, textarea, select {
+  /* フォント色 */
+  color: var(--color-text);
+  /* フォント */
+  /* Helvetica Neue: macOS,iOS 欧文 */
+  /* Helvetica Sans: macOS,iOS 和文 */
+  /* Arial: win 欧文 */
+  /* Yu Gothic: win 和文 */
+  /* sans-serif: 総称 */
+  font-family: "Helvetica Neue", "Hiragino Sans", "Arial", "Yu Gothic", sans-serif;
+  /* フォントの最適化 */
+  font-optical-sizing: auto;
+  /* フォントサイズ */
+  font-size: 14px;
+  /* フォントの太さ */
+  font-weight: 400;
+}
+
+/* ボタン */
+button {
+  /* 背景色 */
+  background-color: var(--color-content-2);
+  /* 枠線 */
+  border: 1px solid ;
+  /* 枠線の色 */
+  border-color: var(--color-text);
+  /* 高さ */
+  height: 5vh;
+  /* 最小幅 */
+  min-width: 75px;
+}
+
+/* ボタン(ホバー時) */
+button:hover {
+  /* 背景色 */
+  background-color: var(--color-content-3);
+}
+
+/* ボタン(クリック時) */
+button:active {
+  /* 背景色 */
+  background-color: var(--color-content-1);
+}
+
+/* ボタン(非アクティブ時) */
+button:disabled {
+  /* 背景色 */
+  background-color: var(--color-content-2);
+  /* カーソルを非アクティブに */
+  cursor: not-allowed;
+  /* 透明度 */
+  opacity: 0.3;
+}
+
+* {
+  /* bodyのデフォルトのmarginを打ち消す */
+  margin: 0;
+  /* bodyのデフォルトのpaddingを打ち消す */
+  padding: 0;
+}
+/* ====== */
+
+/* ダークモード */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-background: #1f1f1f;
+    --color-content-1: #2f2f2f;
+    --color-content-2: #3f3f3f;
+    --color-content-3: #4f4f4f;
+    --color-text: #dfdfdf;
+  }
+}

@@ -1,0 +1,146 @@
+/* === For OptionButtons.tsx === */
+/* オプションボタンの全体 */
+.option-buttons {
+  /* 子要素を横並びに配置 */
+  display: flex;
+  /* 内余白(下) */
+  padding-bottom: 5vh;
+}
+
+/* オプションボタン */
+.option-button {
+  /* 幅 */
+  width: 10%;
+}
+/* ====== */
+
+/* === For TermSelect.tsx === */
+/* ドロップダウンの全体 */
+.termselect-container {
+  /* 子要素を横並びに配置 */
+  display: flex;
+  /* 外余白(下) */
+  margin-bottom: 2vh
+}
+
+/* ドロップダウン */
+.termselect-select {
+  /* 背景色 */
+  background-color: var(--color-content-2);
+  /* 高さ */
+  height: 5vh;
+  /* 幅 */
+  width: 100px;
+}
+/* ====== */
+
+/* === For Table.tsx === */
+.one-month-table-wrapper {
+  /* 最大高さ */
+  max-height: 56vh;
+  /* スクロール */
+  overflow-y: scroll;
+}
+
+/* 一か月分の表 */
+.one-month-table {
+  /* 隣り合うボーダーの枠線を重ねる */
+  border-collapse: collapse;
+  /* 内余白(下) */
+  margin-bottom: 2vh;
+  /* 各列で列幅を指定 */
+  table-layout: fixed;
+  /* 幅 */
+  width: 100%;
+}
+
+/* 先頭行以外のセル */
+.one-month-table td,th {
+  /* 枠線 */
+  border: 1px solid;
+  /* はみ出した分は表示しない */
+  overflow: hidden;
+  /* テキスト左寄せ */
+  text-align: left;
+  /* テキストはみ出しは3点リーダー */
+  text-overflow: ellipsis;
+  /* テキスト折り返しなし */
+  white-space: nowrap;
+}
+
+/* 先頭行1列目 */
+.one-month-table th:nth-child(1) {
+  width: 20px;
+}
+
+/* 先頭行2列目 */
+.one-month-table th:nth-child(2) {
+  width: 60px;
+}
+
+/* 先頭行3列目 */
+.one-month-table th:nth-child(3) {
+  width: 80px;
+}
+
+/* 先頭行4列目 */
+.one-month-table th:nth-child(4) {
+  width: 80px;
+}
+
+/* 先頭行5列目 */
+.one-month-table th:nth-child(5) {
+  width: 150px;
+}
+
+/* 先頭行6列目 */
+.one-month-table th:nth-child(6) {
+  width: 80px;
+}
+
+/* 先頭行以外1列目 */
+.one-month-table tbody tr :nth-child(1) {
+  /* 中央揃え */
+  text-align: center;
+}
+
+/* 先頭行以外6列目 */
+.one-month-table tbody tr :nth-child(6) {
+  /* 右揃え */
+  text-align: right;
+}
+
+.one-month-table-header {
+  display: flex;
+  justify-content: space-between;
+}
+
+.one-month-table-filter-button {
+  width: 20px;
+  min-width: 20px;
+  height: 20px;
+  display: block;
+}
+/* ====== */
+
+/* === For IOButtons.tsx === */
+/* 出入力ボタンの全体 */
+.io-container {
+  /* 子要素を横並びに配置 */
+  display: flex;
+}
+
+/* ファイル選択 */
+.io-file-selector {
+  /* 表示しない(機能のみ利用) */
+  display: none;
+}
+
+/* 各オプションボタン */
+.io-button {
+  /* 最小幅 */
+  min-width: 110px;
+  /* 幅 */
+  width: 15%;
+}
+/* ====== */
