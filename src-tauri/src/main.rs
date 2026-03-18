@@ -4,12 +4,15 @@
 // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
 
 use env_logger;
+use log::warn;
 use std::io::Write;
 
 #[async_std::main]
 async fn main() {
     // read .env
-    dotenv::dotenv().expect("Failed to read .env file");
+    if let Err(_) = dotenv::from_filename("/home/redaction-f/.config/cash-in-out/.env") {
+        warn!("Failed to read .env file");
+    }
 
     // build logger
     env_logger::Builder::from_default_env()
