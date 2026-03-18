@@ -270,7 +270,7 @@ impl CashIORecord {
                 self.amount, 
                 (&self.memo)
                     .remove_special_chars()
-                    .unwrap_or_else(|e| { warn!(r#"Title of the record({}) contains '"', ';', or '-'"#, self.title); e }), 
+                    .unwrap_or_else(|e| { warn!(r#"Memo of the record({}) contains '"', ';', or '-'"#, self.title); e }), 
                 self.id
             ).as_str()
         )
