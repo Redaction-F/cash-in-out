@@ -195,7 +195,7 @@ export class MCategory {
   }
 
   async remove() {
-    await invoke<void>("remove_main_category", {mainCategoryName: this._value});
+    await invoke<void>("delete_main_category", {mainCategoryName: this._value});
   }
   
   static fromString(value: string): MCategory | string {
@@ -207,7 +207,7 @@ export class MCategory {
   }
 
   static async add(name: string) {
-    await invoke<void>("add_main_category", {newMainCategoryName: name});
+    await invoke<void>("create_main_category", {newMainCategoryName: name});
   }
 
   static async reload() {
@@ -248,7 +248,7 @@ export class SCategory {
   }
 
   async remove() {
-    await invoke<void>("remove_sub_category", {subCategorName: this._value, mainCategoryName: SCategory._superCategory.value});
+    await invoke<void>("delete_sub_category", {subCategoryName: this._value, mainCategoryName: SCategory._superCategory.value});
   }
   
   static fromString(value: string): SCategory | string {
@@ -284,8 +284,8 @@ export class SCategory {
     SCategory._superCategory = mainCategory;
   }
 
-  static async add(name: string) {
-    await invoke<void>("add_sub_category", {newSubCategoryName: name, mainCategoryName: SCategory._superCategory});
+  static async add(name: string, superCategory: MCategory) {
+    await invoke<void>("create_sub_category", {newSubCategoryName: name, mainCategoryName: superCategory.value});
   }
 
   get value(): string {
