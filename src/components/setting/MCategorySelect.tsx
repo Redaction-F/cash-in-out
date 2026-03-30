@@ -33,23 +33,24 @@ function MCategorySelect(props: {
   }, [render])
 
   return (
-    <select 
-      id="add-category-main" 
-      className="setting-select" 
-      onChange={() => props.sCategoryFunctions.update!()} 
-      disabled={props.disabled} 
-      defaultValue={props.defaultValue} 
-      key={render} 
-      ref={select}
-    >
-      <option value={MCategory.none.value}>--</option>
-      {
-        MCategory.mainCategorys.map((v) => <option value={v} key={v}>{v}</option>)
-      }
-      {
-        props.additionalOption
-      }
-    </select>
+    <div className="all-select-wapper">
+      <select 
+        id="add-category-main"
+        onChange={() => props.sCategoryFunctions.update!()} 
+        disabled={props.disabled} 
+        defaultValue={props.defaultValue} 
+        key={render} 
+        ref={select}
+      >
+        <option value={MCategory.none.value}>--</option>
+        {
+          MCategory.mainCategorys.map((v) => <option value={v} key={v}>{v}</option>)
+        }
+        {
+          props.additionalOption
+        }
+      </select>
+    </div>
   )
 }
 

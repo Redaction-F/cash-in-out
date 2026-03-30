@@ -1,12 +1,4 @@
 /* 
-  色
-  light   dark
-  #efefef #1f1f1f 背景
-  #dfdfdf #2f2f2f ボタン背景(押下時)
-  #cfcfcf #3f3f3f ボタン背景
-  #bfbfbf #4f4f4f ボタン背景(ホバー時)
-  #2f2f2f #dfdfdf 境界、テキスト
-
   大きさはvh, vwもしくは%で指定
   ただし枠線とそこに関わる部分はpxで指定
 */
@@ -41,6 +33,49 @@
   /* フォントの太さ */
   font-weight: 400;
 }
+
+select {
+  /* デフォルトのスタイルを無効 */
+  appearance: none;
+  /* 高さ */
+  height: 5vh;
+  /* 幅 */
+  width: 100px;
+  /* 背景色 */
+  background-color: var(--color-content-2);
+}
+
+.all-select-wapper {
+  /* 子要素のposition: absoluteを効かせる */
+  position: relative;
+}
+
+/* ドロップダウンの矢印 */
+.all-select-wapper::after {
+  /* 疑似要素を表示 */
+  content: "";
+  /* 親要素からの相対的な位置を指定し配置 */
+  position: absolute;
+  /* 親要素からの相対的な位置 */
+  top: 1.5vh;
+  /* 親要素からの相対的な位置 */
+  right: 10px;
+  /* 高さ */
+  width: 1.2vh;
+  /* 幅 */
+  height: 1.2vh;
+  /* 枠線(矢印になる部分) */
+  border-right: 2px solid var(--color-text);
+  border-bottom: 2px solid var(--color-text);
+  /* 回転 */
+  transform: rotate(45deg);
+}
+
+select > option {
+  /* 背景色 */
+  background-color: var(--color-content-2);
+}
+
 
 /* ボタン */
 button {

@@ -22,16 +22,6 @@
   /* 外余白(下) */
   margin-bottom: 2vh
 }
-
-/* ドロップダウン */
-.termselect-select {
-  /* 背景色 */
-  background-color: var(--color-content-2);
-  /* 高さ */
-  height: 5vh;
-  /* 幅 */
-  width: 100px;
-}
 /* ====== */
 
 /* === For Table.tsx === */
