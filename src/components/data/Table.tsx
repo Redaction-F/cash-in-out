@@ -102,6 +102,19 @@ function Table(props: {
               </tr>
             )
           }
+          <tr>
+            <th scope="row"></th>
+            <th></th>
+            <td></td>
+            <td></td>
+            <td>
+              合計
+            </td>
+            <td>
+              {table.current.map((v) => v.amount).reduce((state, v) => state + v, 0)}
+            </td>
+            <td></td>
+          </tr>
         </tbody>
       </table>
     </div>
