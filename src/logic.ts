@@ -132,6 +132,19 @@ export class CashIORecord {
     }
   }
 
+  static async sumInThisMonth(): Promise<number> {
+    let today: Date = new Date();
+    return await invoke<number>("get_sum_by_month", {year: today.getFullYear(), month: today.getMonth() + 1});
+  }
+
+  static async sumByMonth(year: number, month: number): Promise<number> {
+    if (month === null) {
+      return 0;
+    } else {
+      return await invoke<number>("get_sum_by_month", {year: year, month: month});
+    }
+  }
+
   static async deleteById(id: number) {
     await invoke<void>("delete_record_by_id", {id: id});
   }

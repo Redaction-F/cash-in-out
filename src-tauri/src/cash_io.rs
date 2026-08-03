@@ -6,6 +6,8 @@ use std::fmt::Debug;
 use chrono::{Datelike, NaiveDate, NaiveDateTime};
 // import for logging
 use log::{error, warn};
+// import for decimal
+use rust_decimal::Decimal;
 // import for Serialize and Dederialize(data for frontend)
 use serde::{
     de::{self, Deserialize, Visitor},
@@ -245,6 +247,57 @@ impl CashIORecord {
                 e
             )
         })
+    }
+
+    pub async fn sum_by_month(
+        pool: &Pool<MySql>,
+        date: NaiveDate,
+    ) -> ThisResult<isize> {
+        // first day of the month
+        let first_day_in_month: NaiveDate = NaiveDate::from_ymd_opt(date.year(), date.month(), 1)
+            .ok_or_else(|| {
+            err_with_msg!(
+                ErrorKinds::DeveloperError,
+                "Failed to get first day in the month.",
+                "予期せぬエラーが発生しました。(E001)"
+            )
+        })?;
+        // last day of the month
+        let last_day_in_month: NaiveDate = {
+            let (next_y, next_m): (i32, u32) = if date.month() == 12 {
+                (date.year() + 1, date.month())
+            } else {
+                (date.year(), date.month() + 1)
+            };
+            NaiveDate::from_ymd_opt(next_y, next_m, 1)
+                .map(|v| v.pred_opt())
+                .flatten()
+                .ok_or_else(|| {
+                    err_with_msg!(
+                        ErrorKinds::DeveloperError,
+                        "Failed to get last day in the month.",
+                        "予期せぬエラーが発生しました。(E001)"
+                    )
+                })?
+        };
+        sqlx::query_scalar::<_, Option<Decimal>>(
+            format!(
+                r#"SELECT sum(amount) FROM cash_record WHERE record_date BETWEEN "{}" AND "{}";"#, 
+                first_day_in_month, 
+                last_day_in_month
+            ).as_str()
+        )
+            .fetch_one(pool)
+            .await
+            .map(|v| 
+                v.map(|v| <Decimal as TryInto<isize>>::try_into(v).ok()).flatten().unwrap_or_default()
+            )
+            .map_err(|e| err_with_msg!(
+                ErrorKinds::DataBaseError, 
+                "Failed to get CashIORecords from the database.", 
+                "データの取得に失敗しました。", 
+                e
+            ))
     }
 
     /// Update a record of the database.

@@ -37,6 +37,7 @@ async fn main() {
         .invoke_handler(tauri::generate_handler![
             cash_in_out::get_records_by_month,
             cash_in_out::get_record_by_id,
+            cash_in_out::get_sum_by_month,
             cash_in_out::update_record,
             cash_in_out::create_record,
             cash_in_out::delete_record_by_id,

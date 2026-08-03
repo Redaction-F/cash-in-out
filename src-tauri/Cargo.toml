@@ -11,7 +11,6 @@ edition = "2021"
 tauri-build = { version = "2", features = [] }
 
 [dependencies]
-# tauri = { version = "1", features = [ "dialog-open", "dialog-confirm", "dialog-message", "shell-open"] }
 tauri = { version = "2", features = [] }
 tauri-plugin-opener = "2"
 
@@ -36,8 +35,9 @@ chrono = { version = "0.4.39", features = [ "serde" ] }
 
 # DB
 async-std = { version = "1.13.0", features = [ "attributes" ] }
-sqlx = { version = "0.8.3", features = [ "mysql", "runtime-async-std-native-tls", "chrono" ] }
+sqlx = { version = "0.8.3", features = [ "mysql", "runtime-async-std-native-tls", "chrono", "rust_decimal" ] }
 tauri-plugin-dialog = "2"
+rust_decimal = "1.42.1"
 # tauri-plugin-dialog = "2"
 
 [features]
