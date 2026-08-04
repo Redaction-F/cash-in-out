@@ -1,21 +1,6 @@
-# Tauri + React + Typescript
-
-This template should help get you started developing with Tauri, React and Typescript in Vite.
-
-## Recommended IDE Setup
-
-- [VS Code](https://code.visualstudio.com/) + [Tauri](https://marketplace.visualstudio.com/items?itemName=tauri-apps.tauri-vscode) + [rust-analyzer](https://marketplace.visualstudio.com/items?itemName=rust-lang.rust-analyzer)
-
-# Run
+# 別画面でweb inspector起動時の黒画面
+対処法
 ```
-pnpm tauri dev
+WEBKIT_DISABLE_DMABUF_RENDERER=1 cargo tauri dev
 ```
-
-# プロジェクトの開始
-## cargo サブコマンドの導入
-```
-cargo install tauri-cli
-```
-```
-cargo install create-tauri-app
-```
+で起動

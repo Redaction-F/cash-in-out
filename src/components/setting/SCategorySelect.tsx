@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { JSX, useRef, useState } from "react";
 import { MCategory, SCategory } from "../../logic";
 import { MCategorySelectFunctions, SCategorySelectFunctions } from "./logic";
 
@@ -38,24 +38,25 @@ function SCategorySelect(props: {
   props.sCategoryFunctions.update = update;
 
   return (
-    <select 
-      id="add-category-main" 
-      className="setting-select" 
-      disabled={props.disabled} 
-      defaultValue={props.defaultValue} 
-      key={render} 
-      ref={select}
-    >
-      <option value={SCategory.none.value}>--</option>
-      {
-        SCategory.subCategorys.map((v) => <option value={v} key={v}>{v}</option>)
-      }
-      {
-        SCategory.subCategorys.length === 0
-        ? <></>
-        : props.additionalOption
-      }
-    </select>
+    <div className="all-select-wapper">
+      <select 
+        id="add-category-main"
+        disabled={props.disabled} 
+        defaultValue={props.defaultValue} 
+        key={render} 
+        ref={select}
+      >
+        <option value={SCategory.none.value}>--</option>
+        {
+          SCategory.subCategorys.map((v) => <option value={v} key={v}>{v}</option>)
+        }
+        {
+          SCategory.subCategorys.length === 0
+          ? <></>
+          : props.additionalOption
+        }
+      </select>
+    </div>
   )
 }
 

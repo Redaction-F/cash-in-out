@@ -3,13 +3,18 @@
 
 // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
 
+extern crate proc_macro;
+
 use env_logger;
+use log::warn;
 use std::io::Write;
 
 #[async_std::main]
 async fn main() {
     // read .env
-    dotenv::dotenv().expect("Failed to read .env file");
+    if let Err(_) = dotenv::from_filename("/home/redaction-f/.config/cash-in-out/.env") {
+        warn!("Failed to read .env file");
+    }
 
     // build logger
     env_logger::Builder::from_default_env()
@@ -34,6 +39,7 @@ async fn main() {
         .invoke_handler(tauri::generate_handler![
             cash_in_out::get_records_by_month,
             cash_in_out::get_record_by_id,
+            cash_in_out::get_sum_by_month,
             cash_in_out::update_record,
             cash_in_out::create_record,
             cash_in_out::delete_record_by_id,

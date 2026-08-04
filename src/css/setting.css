@@ -62,14 +62,4 @@
   /* 透明度 */
   opacity: 0.3;
 }
-
-/* ドロップダウン */
-.setting-select {
-  /* 背景色 */
-  background-color: var(--color-content-2);
-  /* 高さ */
-  height: 5vh;
-  /* 幅 */
-  width: 100px;
-}
 /* ====== */
