@@ -1,3 +1,9 @@
+[workspace]
+members = [
+    ".",
+    "cash_in_out_derive"
+]
+
 [package]
 name = "cash-in-out"
 version = "0.2.0"
@@ -7,10 +13,9 @@ edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
-[build-dependencies]
-tauri-build = { version = "2", features = [] }
-
 [dependencies]
+cash_in_out_derive = { path = "./cash_in_out_derive"}
+
 tauri = { version = "2", features = [] }
 tauri-plugin-opener = "2"
 
@@ -39,6 +44,9 @@ sqlx = { version = "0.8.3", features = [ "mysql", "runtime-async-std-native-tls"
 tauri-plugin-dialog = "2"
 rust_decimal = "1.42.1"
 # tauri-plugin-dialog = "2"
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
 
 [features]
 # This feature is used for production builds or when a dev server is not specified, DO NOT REMOVE!!

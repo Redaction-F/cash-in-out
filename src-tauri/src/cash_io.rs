@@ -2,6 +2,7 @@
 
 // import for debug
 use std::fmt::Debug;
+use cash_in_out_derive::MyDeserialize;
 // import for date
 use chrono::{Datelike, NaiveDate, NaiveDateTime};
 // import for logging
@@ -10,8 +11,7 @@ use log::{error, warn};
 use rust_decimal::Decimal;
 // import for Serialize and Dederialize(data for frontend)
 use serde::{
-    de::{self, Deserialize, Visitor},
-    ser::{Serialize, SerializeStruct},
+    Deserialize, Serialize, de::{self, Visitor}, ser::SerializeStruct,
 };
 // import for database
 use sqlx::{mysql::MySql, FromRow, Pool, Row};
@@ -61,8 +61,14 @@ macro_rules! field_check {
     };
 }
 
+// #[proc_macro_derive(AnswerFn)]
+// pub fn derive_answer_fn(_item: TokenStream) -> TokenStream {
+//     "fn answer() -> u32 { 42 }".parse().unwrap()
+// }
+
 /// Payment or deposit data.
-#[derive(Debug)]
+#[derive(Debug, Serialize, MyDeserialize)]
+#[serde(rename_all="camelCase")]
 pub struct CashIORecord {
     id: usize,
     date: NaiveDate,
@@ -78,16 +84,6 @@ pub struct CashIORecord {
 }
 
 impl CashIORecord {
-    /// Fields of this sturct.
-    const FIELDS: [&'static str; 7] = [
-        "id",
-        "date",
-        "mainCategory",
-        "subCategory",
-        "title",
-        "amount",
-        "memo",
-    ];
     /// SQL statement for select `CashIO`.
     const SELECT_SQL: &'static str = "SELECT 
             cash_record.id, 
@@ -404,102 +400,57 @@ impl CashIORecord {
     }
 }
 
-// convert a `CashIORecord` to a frontend data
-impl Serialize for CashIORecord {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: serde::Serializer,
-    {
-        let mut s: <S as serde::Serializer>::SerializeStruct =
-            serializer.serialize_struct("CashIORecord", 7)?;
-        s.serialize_field("id", &self.id).map_err(|e| {
-            error!("{:?}", e);
-            e
-        })?;
-        s.serialize_field("date", &self.date).map_err(|e| {
-            error!("{:?}", e);
-            e
-        })?;
-        s.serialize_field("mainCategory", &self.main_category)
-            .map_err(|e| {
-                error!("{:?}", e);
-                e
-            })?;
-        s.serialize_field("subCategory", &self.sub_category)
-            .map_err(|e| {
-                error!("{:?}", e);
-                e
-            })?;
-        s.serialize_field("title", &self.title).map_err(|e| {
-            error!("{:?}", e);
-            e
-        })?;
-        s.serialize_field("amount", &self.amount).map_err(|e| {
-            error!("{:?}", e);
-            e
-        })?;
-        s.serialize_field("memo", &self.memo).map_err(|e| {
-            error!("{:?}", e);
-            e
-        })?;
-        s.end().map_err(|e| {
-            error!("{:?}", e);
-            e
-        })
-    }
-}
+// // convert a frontend data to a CashIORecord
+// impl<'de> Deserialize<'de> for CashIORecord {
+//     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+//     where
+//         D: de::Deserializer<'de>,
+//     {
+//         deserializer.deserialize_struct("CashIORecord", &CashIORecord::FIELDS, CashIORecordVisitor)
+//     }
+// }
 
-// convert a frontend data to a CashIORecord
-impl<'de> Deserialize<'de> for CashIORecord {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: de::Deserializer<'de>,
-    {
-        deserializer.deserialize_struct("CashIORecord", &CashIORecord::FIELDS, CashIORecordVisitor)
-    }
-}
+// struct CashIORecordVisitor;
 
-struct CashIORecordVisitor;
+// impl<'de> Visitor<'de> for CashIORecordVisitor {
+//     type Value = CashIORecord;
 
-impl<'de> Visitor<'de> for CashIORecordVisitor {
-    type Value = CashIORecord;
+//     fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
+//         write!(formatter, "fields: {}", Self::Value::FIELDS.join(", "))
+//     }
 
-    fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
-        write!(formatter, "fields: {}", Self::Value::FIELDS.join(", "))
-    }
+//     fn visit_map<A>(self, map: A) -> Result<Self::Value, A::Error>
+//     where
+//         A: serde::de::MapAccess<'de>,
+//     {
+//         let mut map: A = map;
+//         let mut id: Option<usize> = None;
+//         let mut date: Option<NaiveDate> = None;
+//         let mut main_category: Option<String> = None;
+//         let mut sub_category: Option<String> = None;
+//         let mut title: Option<String> = None;
+//         let mut amount: Option<isize> = None;
+//         let mut memo: Option<String> = None;
 
-    fn visit_map<A>(self, map: A) -> Result<Self::Value, A::Error>
-    where
-        A: serde::de::MapAccess<'de>,
-    {
-        let mut map: A = map;
-        let mut id: Option<usize> = None;
-        let mut date: Option<NaiveDate> = None;
-        let mut main_category: Option<String> = None;
-        let mut sub_category: Option<String> = None;
-        let mut title: Option<String> = None;
-        let mut amount: Option<isize> = None;
-        let mut memo: Option<String> = None;
+//         while let Some(key) = map.next_key::<String>()? {
+//             key_match!(
+//                 map,
+//                 key.as_str(),
+//                 "id" | "_id" => id,
+//                 "date" | "_date" => date,
+//                 "mainCategory" | "_mainCategory" => main_category,
+//                 "subCategory" | "_subCategory" => sub_category,
+//                 "title" | "_title" => title,
+//                 "amount" | "_amount" => amount,
+//                 "memo" | "_memo" => memo
+//             );
+//         }
 
-        while let Some(key) = map.next_key::<String>()? {
-            key_match!(
-                map,
-                key.as_str(),
-                "id" | "_id" => id,
-                "date" | "_date" => date,
-                "mainCategory" | "_mainCategory" => main_category,
-                "subCategory" | "_subCategory" => sub_category,
-                "title" | "_title" => title,
-                "amount" | "_amount" => amount,
-                "memo" | "_memo" => memo
-            );
-        }
-
-        Ok(
-            field_check!(CashIORecord, id, date, main_category, sub_category, title, amount, memo; created_at: None, updated_at: None),
-        )
-    }
-}
+//         Ok(
+//             field_check!(CashIORecord, id, date, main_category, sub_category, title, amount, memo; created_at: None, updated_at: None),
+//         )
+//     }
+// }
 
 // convert a database row to a CashIORecord
 impl<'r, R> FromRow<'r, R> for CashIORecord

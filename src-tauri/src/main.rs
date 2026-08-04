@@ -3,6 +3,8 @@
 
 // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
 
+extern crate proc_macro;
+
 use env_logger;
 use log::warn;
 use std::io::Write;
