@@ -1,9 +1,16 @@
 import { invoke } from "@tauri-apps/api/core";
-import { open } from "@tauri-apps/plugin-dialog";
+import { open, save } from "@tauri-apps/plugin-dialog";
 
 function IOButtions() {
   async function outputFile() {
-    await invoke<void>("write_in_csv", {}).then(() => {
+    const path = await save({
+      defaultPath: "output.csv"
+    });
+    if (path === null) {
+      alert("キャンセルされました");
+      return;
+    }
+    await invoke<void>("write_in_csv", { path }).then(() => {
       alert("ファイルに出力しました。");
     }, (e) => {
       console.log(e);

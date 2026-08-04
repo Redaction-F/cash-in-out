@@ -178,7 +178,7 @@ pub async fn delete_sub_category(
 
 /// Write data of the datatbase on a csv file.
 #[tauri::command]
-pub async fn write_in_csv() -> ThisResult<()> {
+pub async fn write_in_csv(path: String) -> ThisResult<()> {
     // connect the database
     let pool: Pool<MySql> = connect_db().await?;
 
@@ -186,7 +186,7 @@ pub async fn write_in_csv() -> ThisResult<()> {
     let records: Vec<CashIORecord> = CashIORecord::select_all(&pool).await?;
 
     // write on csv
-    write_in_csv_simple(records)
+    write_in_csv_simple(records, path)
 }
 
 /// Read data a csv file and create the data on the database.
