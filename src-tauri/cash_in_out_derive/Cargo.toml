@@ -9,6 +9,7 @@ quote = "1"
 serde = "1.0.229"
 serde_derive = "1.0.229"
 prettyplease = "0.3.0"
+proc-macro2 = "1.0.107"
 
 # logging
 log = "0.4.25"
