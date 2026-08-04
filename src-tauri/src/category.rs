@@ -11,7 +11,7 @@ use chrono::NaiveDateTime;
 // import for log
 use log::warn;
 // import for Serialize
-use serde::{ser::SerializeStruct, Serialize};
+use serde::Serialize;
 // import for database
 use sqlx::{FromRow, MySql, Pool, Row};
 // this crate
@@ -573,6 +573,7 @@ where
 }
 
 /// A main category and all sub categorys under the main category.
+#[derive(Serialize)]
 pub struct MainCategoryWithSubs {
     name: String,
     subs: Vec<String>,
@@ -618,19 +619,5 @@ impl MainCategoryWithSubs {
     /// Add a sub category.
     fn push(&mut self, value: SubCategory) {
         self.subs.push(value.to_string());
-    }
-}
-
-// convert a `CashIORecord` to a frontend data
-impl Serialize for MainCategoryWithSubs {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: serde::Serializer,
-    {
-        let mut s: <S as serde::Serializer>::SerializeStruct =
-            serializer.serialize_struct("MainCategoryWithSubs", 2)?;
-        s.serialize_field("name", &self.name)?;
-        s.serialize_field("subs", &self.subs)?;
-        s.end()
     }
 }
