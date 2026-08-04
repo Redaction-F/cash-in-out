@@ -2,8 +2,6 @@
 
 // import for file control
 use std::fs::File;
-// import for date
-use chrono::Local;
 // import for csv
 use csv::{Reader, Writer};
 // this crate
