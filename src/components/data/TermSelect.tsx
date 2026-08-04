@@ -56,10 +56,9 @@ function TermSelect(props: {
   return (
     <div className="termselect-container">
       {/* 兄弟要素とkeyが被らないようにすみわけ */}
-      <>
+      <div className="all-select-wapper">
         <select 
-          id="year" 
-          className="termselect-select" 
+          id="year"
           onChange={onUpdateOfYear} 
           defaultValue={today.getFullYear()} 
           key={renderYearSelect} 
@@ -69,12 +68,11 @@ function TermSelect(props: {
             SelectYear.yearArray().map((v) => <option value={v} key={v}>{String(v) + "年"}</option>)
           }
         </select>
-      </>
+      </div>
       {/* 兄弟要素とkeyが被らないようにすみわけ */}
-      <>
+      <div className="all-select-wapper">
         <select 
-          id="month" 
-          className="termselect-select" 
+          id="month"
           onChange={onUpdateOfMonth} 
           defaultValue={String(monthLen.current)} 
           key={renderMonthSelect} 
@@ -85,7 +83,7 @@ function TermSelect(props: {
             (new Array(monthLen.current)).fill(0).map((_, i) => <option value={String(i + 1)} key={i}>{String(i + 1) + "月"}</option>)
           }
         </select>
-      </>
+      </div>
     </div>
   )
 }

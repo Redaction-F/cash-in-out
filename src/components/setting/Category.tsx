@@ -1,5 +1,4 @@
 import { useRef, useState } from "react";
-import { invoke } from "@tauri-apps/api/core";
 import { MCategory, SCategory } from "../../logic";
 import { CategoryFunctions, MCategorySelectFunctions, SCategorySelectFunctions } from "./logic";
 import MCategorySelect from "./MCategorySelect";
@@ -36,17 +35,17 @@ function Category(props: {
       alert("カテゴリ名を入力してください。");
       return;
     }
-    let mainCategoryName: MCategory | SelectMainCategoryAdditional = getSelectedMCategory();
-    let subCategoryName: SCategory | SelectSubCategoryAdditional = getSelectedSCategory();
+    const mainCategory: MCategory | SelectMainCategoryAdditional = getSelectedMCategory();
+    const subCategory: SCategory | SelectSubCategoryAdditional = getSelectedSCategory();
     let addResult: Promise<void>;
-    if (mainCategoryName instanceof MCategory && mainCategoryName.isNone()) {
+    if (mainCategory instanceof MCategory && mainCategory.isNone()) {
       alert("メインカテゴリを選択してください。");
       return;
-    } else if (mainCategoryName === selectAddMainCategory) {
-      addResult = invoke<void>("add_main_category", {newMainCategoryName: categoryName});
+    } else if (mainCategory === selectAddMainCategory) {
+      addResult = MCategory.add(categoryName);
     } else {
-      if (subCategoryName === selectAddSubCategory) {
-        addResult = invoke<void>("add_sub_category", {newSubCategoryName: categoryName, mainCategoryName: mainCategoryName.value});
+      if (subCategory === selectAddSubCategory) {
+        addResult = SCategory.add(categoryName, mainCategory);
       } else {
         alert("サブカテゴリを追加する場合は、「(サブカテゴリを追加)」を選択してください。");
         return;
@@ -62,20 +61,20 @@ function Category(props: {
   }
   // カテゴリの削除
   async function removeCategory() {
-    let mainCategoryName: MCategory | SelectMainCategoryAdditional = getSelectedMCategory();
-    let subCategoryName: SCategory | SelectSubCategoryAdditional = getSelectedSCategory();
+    const mainCategory: MCategory | SelectMainCategoryAdditional = getSelectedMCategory();
+    const subCategory: SCategory | SelectSubCategoryAdditional = getSelectedSCategory();
     let removeResult: Promise<void>;
-    if ((mainCategoryName instanceof MCategory && mainCategoryName.isNone()) || mainCategoryName === "--addMainCategory") {
+    if ((mainCategory instanceof MCategory && mainCategory.isNone()) || mainCategory === "--addMainCategory") {
       alert("メインカテゴリを選択してください。");
       return;
     } else {
-      if ((subCategoryName instanceof SCategory && subCategoryName.isNone()) || subCategoryName === "--addSubCategory") {
+      if ((subCategory instanceof SCategory && subCategory.isNone()) || subCategory === "--addSubCategory") {
         alert("メインカテゴリを削除する場合は、「(メインカテゴリを削除)」を選択してください。");
         return;
-      } else if (subCategoryName === "--removeMainCategory") {
-        removeResult = invoke<void>("remove_main_category", {mainCategoryName: mainCategoryName.value});
+      } else if (subCategory === "--removeMainCategory") {
+        removeResult = mainCategory.remove();
       } else {
-        removeResult = invoke<void>("remove_sub_category", {subCategoryName: subCategoryName.value, mainCategoryName: mainCategoryName.value});
+        removeResult = subCategory.remove();
       }
     }
     removeResult.then(async () => {

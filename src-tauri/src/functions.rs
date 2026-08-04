@@ -60,6 +60,24 @@ pub async fn get_record_by_id(id: usize) -> ThisResult<Option<CashIORecord>> {
     CashIORecord::select_by_id(&pool, id).await
 }
 
+/// Get a sum for a month.
+#[tauri::command]
+pub async fn get_sum_by_month(year: usize, month: usize) -> ThisResult<isize> {
+    // connect the database
+    let pool: Pool<MySql> = connect_db().await?;
+
+    // select a record with the id on the database
+    CashIORecord::sum_by_month(
+        &pool,
+        NaiveDate::from_ymd_opt(year as i32, month as u32, 1).ok_or_else(|| {
+            err_with_msg!(
+                ErrorKinds::DeveloperError,
+                "Invaid year or month",
+                "予期せぬエラーが発生しました。(E003)"
+            )
+        })?,).await
+}
+
 /// Update a record.
 #[tauri::command]
 pub async fn update_record(changed_record: CashIORecord) -> ThisResult<()> {
@@ -160,7 +178,7 @@ pub async fn delete_sub_category(
 
 /// Write data of the datatbase on a csv file.
 #[tauri::command]
-pub async fn write_in_csv() -> ThisResult<()> {
+pub async fn write_in_csv(path: String) -> ThisResult<()> {
     // connect the database
     let pool: Pool<MySql> = connect_db().await?;
 
@@ -168,7 +186,7 @@ pub async fn write_in_csv() -> ThisResult<()> {
     let records: Vec<CashIORecord> = CashIORecord::select_all(&pool).await?;
 
     // write on csv
-    write_in_csv_simple(records)
+    write_in_csv_simple(records, path)
 }
 
 /// Read data a csv file and create the data on the database.

@@ -49,11 +49,11 @@ function Inputs(props: {
 
   // フォームの要素
   const inputs: {
-    id: RefObject<HTMLInputElement>, 
-    date: RefObject<HTMLInputElement>, 
-    title: RefObject<HTMLInputElement>, 
-    amount: RefObject<HTMLInputElement>, 
-    memo: RefObject<HTMLTextAreaElement>, 
+    id: RefObject<HTMLInputElement | null>, 
+    date: RefObject<HTMLInputElement | null>, 
+    title: RefObject<HTMLInputElement | null>, 
+    amount: RefObject<HTMLInputElement | null>, 
+    memo: RefObject<HTMLTextAreaElement | null>, 
   } = {
     id: useRef<HTMLInputElement>(null), 
     date: useRef<HTMLInputElement>(null), 

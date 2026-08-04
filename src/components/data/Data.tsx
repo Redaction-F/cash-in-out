@@ -13,7 +13,10 @@ function Data(props: {
 }) {
   // 再読み込み
   async function reload() {
-    tableFunctions.set!(await CashIORecord.getInThisMonth());
+    tableFunctions.set!(
+      await CashIORecord.getInThisMonth(), 
+      await CashIORecord.sumInThisMonth()
+    );
     termSelectFunctions.reload!();
   }
 

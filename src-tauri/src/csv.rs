@@ -2,8 +2,6 @@
 
 // import for file control
 use std::fs::File;
-// import for date
-use chrono::Local;
 // import for csv
 use csv::{Reader, Writer};
 // this crate
@@ -15,12 +13,10 @@ use crate::{
 };
 
 /// Write records of `CashIO` on a csv file.
-pub fn write_in_csv(records: Vec<CashIORecord>) -> ThisResult<()> {
-    // create file name from time
-    let file_name: String = format!("{}.csv", Local::now().format("%Y_%m_%d_%H%M%S").to_string());
+pub fn write_in_csv(records: Vec<CashIORecord>, path: String) -> ThisResult<()> {
     // create a file
     let mut writer: Writer<File> =
-        csv::Writer::from_writer(File::create(file_name).map_err(|e| {
+        csv::Writer::from_writer(File::create(path).map_err(|e| {
             err_with_msg!(
                 ErrorKinds::FileError,
                 "Failed to open a file.",

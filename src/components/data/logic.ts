@@ -7,7 +7,7 @@ export type dataFunctions = {
 
 // Table.tsxが提供する関数群
 export type TableFunctions = {
-  set: ((value: CashIORecord[]) => void) | undefined, 
+  set: ((value: CashIORecord[], sum: number) => void) | undefined, 
   setByMonth: ((year: SelectYear, month: SelectMonth) => Promise<void>) | undefined, 
   getCheckedId: (() => number[]) | undefined, 
 }

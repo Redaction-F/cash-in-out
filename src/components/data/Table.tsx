@@ -8,8 +8,9 @@ function Table(props: {
   optionButtonsFunctions: OptionButtonsFunctions
 }) {
   // 表の更新
-  function set(newTableRows: CashIORecord[]) {
+  function set(newTableRows: CashIORecord[], sum: number) {
     table.current = newTableRows;
+    tableSum.current = sum;
     setRenderTable((prev) => 1 - prev);
   }
   // 月を指定してデータベースからデータを読み込む
@@ -17,7 +18,10 @@ function Table(props: {
     if (month === null) {
       return;
     }
-    set(await CashIORecord.getByMonth(year.value, month));
+    set(
+      await CashIORecord.getByMonth(year.value, month),
+      await CashIORecord.sumByMonth(year.value, month)
+    );
   }
   // 各行のチェックボックスのonChangeでeventからとれるようにラップ
   function updateCheckedRowWrap(index: number, event: React.ChangeEvent<HTMLInputElement>) {
@@ -28,6 +32,7 @@ function Table(props: {
   const table = useRef<CashIORecord[]>([]);
   // データがチェックされているか否かとid
   const checkedStates = useRef<CheckedStates>(new CheckedStates());
+  const tableSum = useRef<number>(0);
   // tableRowsの更新時に更新
   // useState: Table.tsxの表の再レンダリング
   const [renderTable, setRenderTable] = useState<number>(0);
@@ -102,6 +107,19 @@ function Table(props: {
               </tr>
             )
           }
+          <tr>
+            <th scope="row"></th>
+            <th></th>
+            <td></td>
+            <td></td>
+            <td>
+              合計
+            </td>
+            <td>
+              {table.current.map((v) => v.amount).reduce((state, v) => state + v, 0)}
+            </td>
+            <td></td>
+          </tr>
         </tbody>
       </table>
     </div>
