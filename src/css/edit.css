@@ -74,9 +74,9 @@
 /* 入力部分(非アクティブ時) */
 .input-input:disabled {
   /* 背景色 */
-  background-color: var(--color-background);
+  background-color: var(--color-background-1);
   /* テキスト色 */
-  color: var(--color-background);
+  color: var(--color-background-1);
 }
 
 /* 数字入力のスピンボタンを消す */
@@ -106,7 +106,7 @@
 /* テキスト入力時(非アクティブ時) */
 .input-textarea:disabled {
   /* 背景色 */
-  background-color: var(--color-background);
+  background-color: var(--color-background-1);
 }
 
 .input-enter-button {
