@@ -641,7 +641,7 @@ dependencies = [
 
 [[package]]
 name = "cash-in-out"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "async-std",
  "cash_in_out_derive",
