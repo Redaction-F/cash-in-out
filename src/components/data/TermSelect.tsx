@@ -1,8 +1,8 @@
 import { useRef, useState } from "react";
-import { selectMonth, SelectMonth, SelectYear, TableFunctions, TermSelectFunctions } from "./logic";
+import { OnTermChanged, selectMonth, SelectMonth, SelectYear, TermSelectFunctions } from "./logic";
 
 function TermSelect(props: {
-  tableFunctions: TableFunctions, 
+  onTermChanged: OnTermChanged, 
   termSelectFunctions: TermSelectFunctions
 }) {
   // 選択されている年を取得
@@ -30,7 +30,7 @@ function TermSelect(props: {
     if (month === null) {
       return;
     }
-    await props.tableFunctions.setByMonth!(getYear(), month);
+    await props.onTermChanged(getYear(), month);
   }
 
   // 日付データ

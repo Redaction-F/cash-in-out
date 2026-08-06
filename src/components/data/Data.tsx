@@ -49,7 +49,7 @@ function Data(props: {
       {/* ボタン群 */}
       <OptionButtons dataFunctions={dataFunctions} tableFunctions={tableFunctions} optionButtonsFunctions={optionButtonsFunctions} specialFunctions={props.specialFunctions}/>
       {/* 期間選択ドロップダウン */}
-      <TermSelect tableFunctions={tableFunctions} termSelectFunctions={termSelectFunctions}/>
+      <TermSelect onTermChanged={tableFunctions.setByMonth!} termSelectFunctions={termSelectFunctions}/>
       {/* 表 */}
       <Table tableFunctions={tableFunctions} optionButtonsFunctions={optionButtonsFunctions}/>
       <IOButtions />

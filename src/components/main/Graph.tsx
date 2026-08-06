@@ -1,3 +1,5 @@
+import { TableFunctions, TermSelectFunctions } from "../data/logic";
+import TermSelect from "../data/TermSelect";
 import GraphContent from "./GraphContent";
 import { Data, GraphData } from "./logic";
 
@@ -9,7 +11,6 @@ export const center: number = margin + outerR;
 function Graph(props: {
   datas: Data[]
 }) {
-
   const sumAmount: number = props.datas.reduce((pre, v) => pre + v.amount, 0);
   let partialSum: number = 0;
   const graphDatas: GraphData[] = props.datas.map((v) => {
@@ -25,9 +26,9 @@ function Graph(props: {
   });
 
   return (
-    <div className="graph-container">
+    <div className="graph">
       <svg 
-        className="graph"
+        className="graph-svg"
         style={{
           height: `${2 * center}px`,
           width: `${2 * center}px`
@@ -43,9 +44,7 @@ function Graph(props: {
           left: `${center - 60}px`,
           top: `${center - 60}px`
         }}
-      >
-        円グラフ
-      </div>
+      ></div>
     </div>
   );
 }

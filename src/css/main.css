@@ -1,19 +1,19 @@
-.graph-container {
+.graph {
   /* 子のposition: absoluteの基準に */
   position: relative;
 }
 
-.graph {
+.graph-svg {
   height: 280px;
   width: 280px;
 }
 
 .graph-content-title {
-  color: var(--color-content-1);
+  font-size: 20px;
 }
 
 .graph-content-title-border {
-  background-color: var(--color-text);
+  font-size: 20px;
 }
 
 .graph-innertext {
