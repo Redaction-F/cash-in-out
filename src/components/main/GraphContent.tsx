@@ -39,7 +39,7 @@ L ${outerStart[0]} ${outerStart[1]}`}
         onMouseLeave={() => setIsHover(false)}
       />
       <text x={textPosition[0]} y={textPosition[1]} textAnchor="middle"><tspan 
-        className="graph-content-title-border" 
+        className="graph-content-title" 
         stroke="var(--color-text)"
         strokeWidth="5px"
       >{props.data.category}</tspan></text>

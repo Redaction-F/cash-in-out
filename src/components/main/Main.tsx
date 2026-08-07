@@ -1,27 +1,24 @@
 import { useState } from "react";
-import { TermSelectFunctions } from "../data/logic";
+import { SelectMonth, SelectYear, TermSelectFunctions } from "../data/logic";
 import TermSelect from "../data/TermSelect";
 import Graph from "./Graph";
 import { Data } from "./logic";
+import { CashIORecord } from "../../logic";
 
 function Main() {
-  const [datas, setDatas] = useState<Data[]>([
-    {
-      category: "Category1",
-      color: "#3f8f8f",
-      amount: 2000
-    },
-    {
-      category: "Category2",
-      color: "#3faf4f",
-      amount: 1000
-    },
-    {
-      category: "Category3",
-      color: "#af3f2f",
-      amount: 2000
-    },
-  ]);
+  const [datas, setDatas] = useState<Data[]>([]);
+
+  const getSumByMonthGroupByMainCategory = async (year: SelectYear, month: SelectMonth): Promise<Data[]> => {
+    if (month === null) {
+      return [];
+    }
+    const sumGroupByMainCategory = await CashIORecord.sumByMonthGroupByMainCategory(year.value, month);
+    return sumGroupByMainCategory.map((v) => ({
+      category: v[0],
+      color: `#${(Math.floor(Math.random() * 256 * 256 * 256)).toString(16)}`,
+      amount: v[1]
+    }));
+  }
 
   const termSelectFunctions: TermSelectFunctions = {
     reload: undefined
@@ -30,7 +27,7 @@ function Main() {
   return (
     <div>
       <TermSelect onTermChanged={async (year, month) => {
-        
+        setDatas(await getSumByMonthGroupByMainCategory(year, month));
       }} termSelectFunctions={termSelectFunctions}/>
       <Graph datas={datas}/>
     </div>

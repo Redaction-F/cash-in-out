@@ -32,16 +32,16 @@ pub struct Category {
 impl Category {
     /// SQL statement for select Category
     const SELECT_SQL: &str = "SELECT 
-            main_category.id As main_id, 
-            main_category.name As main_name, 
-            main_category.created_at As main_created_at, 
-            main_category.updated_at As main_updated_at, 
-            sub_category.id As sub_id, 
-            sub_category.name As sub_name, 
-            sub_category.created_at As sub_created_at, 
-            sub_category.updated_at As sub_updated_at 
-        FROM sub_category 
-        INNER JOIN main_category ON sub_category.super_category=main_category.id";
+    main_category.id As main_id, 
+    main_category.name As main_name, 
+    main_category.created_at As main_created_at, 
+    main_category.updated_at As main_updated_at, 
+    sub_category.id As sub_id, 
+    sub_category.name As sub_name, 
+    sub_category.created_at As sub_created_at, 
+    sub_category.updated_at As sub_updated_at 
+FROM sub_category 
+INNER JOIN main_category ON sub_category.super_category=main_category.id";
 
     /// Create a full category from main category and sub category.
     fn new(main_category: MainCategory, sub_category: SubCategory) -> ThisResult<Category> {

@@ -1,5 +1,3 @@
-import { TableFunctions, TermSelectFunctions } from "../data/logic";
-import TermSelect from "../data/TermSelect";
 import GraphContent from "./GraphContent";
 import { Data, GraphData } from "./logic";
 
