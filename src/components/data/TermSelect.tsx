@@ -1,37 +1,36 @@
-import { useRef, useState } from "react";
-import { OnTermChanged, selectMonth, SelectMonth, SelectYear, TermSelectFunctions } from "./logic";
+import { forwardRef, useImperativeHandle, useRef, useState } from "react";
+import { OnTermChanged, selectMonth, SelectMonth, SelectYear, TermSelectRef } from "./logic";
 
-function TermSelect(props: {
-  onTermChanged: OnTermChanged, 
-  termSelectFunctions: TermSelectFunctions
-}) {
+const TermSelect = forwardRef((props: {
+  onTermChanged: OnTermChanged | undefined
+}, ref: React.ForwardedRef<TermSelectRef>) => {
   // 選択されている年を取得
-  function getYear(): SelectYear {
+  const getYear = (): SelectYear => {
     let year: number = Number(yearSelect.current?.value);
     return new SelectYear(year);
-  }
+  };
   // 選択されている月を取得
-  function getMonth(): SelectMonth {
+  const getMonth = (): SelectMonth => {
     let month: number | null = monthSelect.current?.value === "null" ? null : Number(monthSelect.current?.value);
     return selectMonth(month);
-  }
+  };
   // 最終月を更新
-  function setMonthLen(value: number) {
+  const setMonthLen = (value: number) => {
     monthLen.current = value;
     setMonthRenderSelect((prev) => 1 - prev);
-  }
+  };
   // 年変更時の処理
-  function onUpdateOfYear() {
+  const onUpdateOfYear = () => {
     setMonthLen(getYear().isThisYear() ? today.getMonth() + 1 : 12);
-  }
+  };
   // 月変更時の処理
-  async function onUpdateOfMonth() {
+  const onUpdateOfMonth = async () => {
     let month: SelectMonth = getMonth();
     if (month === null) {
       return;
     }
-    await props.onTermChanged(getYear(), month);
-  }
+    await props.onTermChanged!(getYear(), month);
+  };
 
   // 日付データ
   const today: Date = new Date();
@@ -47,11 +46,13 @@ function TermSelect(props: {
   const [renderYearSelect, setYearRenderSelect] = useState<number>(0);
   const [renderMonthSelect, setMonthRenderSelect] = useState<number>(0);
 
-  // termSelectFunctionsの初期化
-  props.termSelectFunctions.reload = () => {
-    setYearRenderSelect((prev) => 1 - prev);
-    setMonthLen(today.getMonth() + 1);
-  };
+  // termSelectRefの初期化
+  useImperativeHandle(ref, () => ({
+    reload: () => {
+      setYearRenderSelect((prev) => 1 - prev);
+      setMonthLen(today.getMonth() + 1);
+    }
+  }));
 
   return (
     <div className="termselect-container">
@@ -86,6 +87,6 @@ function TermSelect(props: {
       </div>
     </div>
   )
-}
+})
 
 export default TermSelect;

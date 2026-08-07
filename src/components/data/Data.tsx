@@ -1,45 +1,32 @@
 import OptionButtons from "./OptionButtons";
 import TermSelect from "./TermSelect";
 import Table from "./Table";
-import { DisplayHandler, SpecialFunctions, CashIORecord } from "../../logic";
-import { dataFunctions, OptionButtonsFunctions, TableFunctions, TermSelectFunctions } from "./logic";
+import { DisplayHandler, Global, CashIORecord } from "../../logic";
+import { OptionButtonsRef, TableRef, TermSelectRef } from "./logic";
 import IOButtions from "./IOButtons";
+import { useRef } from "react";
 
 // data display
 // 出入金データの選択・表示
 function Data(props: {
   displayHandler: DisplayHandler, 
-  specialFunctions: SpecialFunctions
+  global: Global
 }) {
   // 再読み込み
-  async function reload() {
-    tableFunctions.set!(
+  const reload = async () => {
+    tableRef.current!.set(
       await CashIORecord.getInThisMonth(), 
       await CashIORecord.sumInThisMonth()
     );
-    termSelectFunctions.reload!();
-  }
+    termSelectRef.current!.reload();
+  };
 
-  // Data.tsxが提供する関数群
-  const dataFunctions: dataFunctions = {
-    reload: reload
-  }
   // Table.tsxが提供する関数群
-  const tableFunctions: TableFunctions = {
-    set: undefined, 
-    setByMonth: undefined, 
-    getCheckedId: undefined, 
-  }
+  const tableRef = useRef<TableRef>(null);
   // TermSelect.tsxが提供する関数群
-  const termSelectFunctions: TermSelectFunctions = {
-    reload: undefined
-  }
+  const termSelectRef = useRef<TermSelectRef>(null);
   // OptionButtons.tsxが提供する関数群
-  const optionButtonsFunctions: OptionButtonsFunctions = {
-    clearCheckedCount: undefined, 
-    incCheckedCount: undefined, 
-    decCheckedCount: undefined
-  }
+  const optionButtonsRef = useRef<OptionButtonsRef>(null);
 
   // このタブ選択時の処理
   props.displayHandler.onOpen = reload;
@@ -47,11 +34,12 @@ function Data(props: {
   return (
     <>
       {/* ボタン群 */}
-      <OptionButtons dataFunctions={dataFunctions} tableFunctions={tableFunctions} optionButtonsFunctions={optionButtonsFunctions} specialFunctions={props.specialFunctions}/>
+      <OptionButtons reload={reload} getCheckedIds={tableRef.current?.getCheckedIds} global={props.global} ref={optionButtonsRef}/>
       {/* 期間選択ドロップダウン */}
-      <TermSelect onTermChanged={tableFunctions.setByMonth!} termSelectFunctions={termSelectFunctions}/>
+      <TermSelect onTermChanged={tableRef.current?.setByMonth} ref={termSelectRef}/>
       {/* 表 */}
-      <Table tableFunctions={tableFunctions} optionButtonsFunctions={optionButtonsFunctions}/>
+      <Table onUpdateCheckBoxes={optionButtonsRef.current?.onUpdateCheckBoxes} ref={tableRef}/>
+      {/* 出入力のためのボタン */}
       <IOButtions />
     </>
   )

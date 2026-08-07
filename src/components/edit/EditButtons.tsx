@@ -1,118 +1,60 @@
-import { CashIORecord, SpecialFunctions } from "../../logic";
-import { EditFunctions, InputsFunctions, ModeOfEdit } from "./logic";
+import { forwardRef } from "react";
+import { ModeOfEdit } from "./logic";
 
 // 編集に関するボタン群
-function EditButtons(props: {
-  mode: ModeOfEdit, 
-  setModeWrapper: (value: ModeOfEdit) => void, 
-  editFunctions: EditFunctions, 
-  inputsFunctions: InputsFunctions, 
-  specialFunctions: SpecialFunctions
-}) {
-  // 出入金データ新規作成開始
-  function startCreate() {
-    props.setModeWrapper("createMode");
-  }
-  // 出入金データ編集開始
-  async function startEdit(id: number | null) {
-    if (id === null) {
-      alert("IDを入力して下さい。");
-      return;
-    }
-    let records: CashIORecord | null = await CashIORecord.getById(id);
-    if (records === null) {
-      alert("入力されたIDのデータは存在しません。\n存在するデータのIDを入力するか、データ一覧から選択して編集してください。");
-    } else {
-      props.inputsFunctions.set!(records);
-      props.setModeWrapper("updateMode");
-    }
-  }
-  // 出入金データ新規作成
-  async function doCreate() {
-    let newData: CashIORecord = props.inputsFunctions.get!();
-    await newData.create().then(() => {
-      alert("新規作成が完了しました。");
-      props.inputsFunctions.setEmpty!();
-      props.setModeWrapper("selectMode");
-    }, (e) => {
-      console.log(e);
-      alert("エラーが発生しました。エラーメッセージは以下の通りです。\n" + String(e));
-    })
-  }
-  // 出入金データ更新
-  async function doUpdate() {
-    let changedData: CashIORecord = props.inputsFunctions.get!();
-    await changedData.update().then(() => {
-      alert("編集が完了しました。");
-      props.inputsFunctions.setEmpty!();
-      props.setModeWrapper("selectMode");
-    }, (e) => {
-      console.log(e);
-      alert("エラーが発生しました。エラーメッセージは以下の通りです。\n" + String(e));
-    })
-  }
-  // 出入金データ編集中止
-  function cancelEdit() {
-    props.inputsFunctions.setEmpty!();
-    props.setModeWrapper("selectMode");
-  }
-  // IDフォームの内容から編集開始
-  function startEditById() {
-    startEdit(props.inputsFunctions.getId!())
-  }
-
-  // editFunctionsの設定
-  props.editFunctions.startEditFromId = startEditById;
-  props.editFunctions.cancelEdit = cancelEdit;
-  // spectionFunctionを設定
-  props.specialFunctions.startEdit = startEdit;
-  props.specialFunctions.startCreate = startCreate;
-
+const EditButtons = forwardRef((props: {
+  mode: ModeOfEdit,
+  onStartEdit: () => void,
+  onEdit: () => Promise<void>,
+  onStartCreate: () => void,
+  onCreate: () => Promise<void>,
+  onCancel: () => void,
+}, _ref) => {
   return (
     <div className="edit-buttons">
       <button type="button" className="edit-button" onClick={() => {
-        if (props.mode === "selectMode") {
-          startEditById()
-        } else if (props.mode === "updateMode") {
-          doUpdate()
-        } else if (props.mode === "createMode") {
-          doCreate()
+        if (props.mode === "select") {
+          props.onStartEdit()
+        } else if (props.mode === "update") {
+          props.onEdit()
+        } else if (props.mode === "create") {
+          props.onCreate()
         }
-      }} disabled={props.mode === "createMode"}>
+      }} disabled={props.mode === "create"}>
         {
-          props.mode === "selectMode"
+          props.mode === "select"
           ? "編集" 
-          : props.mode === "updateMode"
+          : props.mode === "update"
           ? "編集"
           : ""
         }
       </button>
       <button type="button" className="edit-button" onClick={() => {
-        if (props.mode === "selectMode") {
-          startCreate()
-        } else if (props.mode === "updateMode") {
-          doUpdate()
-        } else if (props.mode === "createMode") {
-          doCreate()
+        if (props.mode === "select") {
+          props.onStartCreate()
+        } else if (props.mode === "update") {
+          props.onEdit()
+        } else if (props.mode === "create") {
+          props.onCreate()
         }
-      }} disabled={props.mode === "updateMode"}>
+      }} disabled={props.mode === "update"}>
         {
-          props.mode === "selectMode"
+          props.mode === "select"
           ? "新規" 
-          : props.mode === "updateMode"
+          : props.mode === "update"
           ? ""
           : "作成"
         }
       </button>
-      <button type="button" className="edit-button" onClick={cancelEdit} disabled={props.mode === "selectMode"}>
+      <button type="button" className="edit-button" onClick={props.onCancel} disabled={props.mode === "select"}>
         {
-          props.mode === "selectMode"
+          props.mode === "select"
           ? ""
           : "キャンセル"
         }
       </button>
     </div>
   )
-}
+})
 
 export default EditButtons;

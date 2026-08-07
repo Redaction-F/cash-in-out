@@ -2,7 +2,7 @@ import { invoke } from "@tauri-apps/api/core";
 import { open, save } from "@tauri-apps/plugin-dialog";
 
 function IOButtions() {
-  async function outputFile() {
+  const outputFile = async () => {
     const path = await save({
       defaultPath: "output.csv"
     });
@@ -17,7 +17,7 @@ function IOButtions() {
       alert("エラーが発生しました。エラーメッセージは以下の通りです\n" + String(e));
     });
   }
-  async function inputFile() {
+  const inputFile = async () => {
     let selected: string | string[] | null = await open({
       multiple: false,
       directory: false, 
