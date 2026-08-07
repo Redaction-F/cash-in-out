@@ -1,0 +1,30 @@
+.graph {
+  /* 子のposition: absoluteの基準に */
+  position: relative;
+}
+
+.graph-svg {
+  height: 280px;
+  width: 280px;
+}
+
+.graph-content-title {
+  font-size: 16px;
+}
+
+.graph-innertext {
+  /* 垂直方向中央揃え */
+  align-items: center;
+  /* 要素を丸くする */
+  border-radius: 50%;
+  /* align-items用 */
+  display: flex;
+  /* 高さ */
+  height: 120px;
+  /* 水平方向中央揃え */
+  justify-content: center;
+  /* topとleftで位置決めできるように(親にposition: relativeを要求) */
+  position: absolute;
+  /* 幅 */
+  width: 120px;
+}

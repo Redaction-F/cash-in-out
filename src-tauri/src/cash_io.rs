@@ -39,25 +39,79 @@ pub struct CashIORecord {
 }
 
 impl CashIORecord {
-    /// SQL statement for select `CashIO`.
-    const SELECT_SQL: &'static str = "SELECT 
-            cash_record.id, 
-            cash_record.record_date, 
-            main_category.name As main_category_name, 
-            sub_category.id As sub_category_id, 
-            sub_category.name As sub_category_name, 
-            cash_record.title, 
-            cash_record.amount, 
-            cash_record.memo, 
-            cash_record.created_at, 
-            cash_record.updated_at 
-        FROM cash_record 
-            INNER JOIN sub_category ON cash_record.category=sub_category.id 
-            INNER JOIN main_category ON sub_category.super_category=main_category.id";
+    /// SQL statement for selecting.
+    const SELECT_SQL_BASE: &'static str = "SELECT 
+    cash_record.id, 
+    cash_record.record_date, 
+    main_category.name AS main_category_name, 
+    sub_category.id AS sub_category_id, 
+    sub_category.name AS sub_category_name, 
+    cash_record.title, 
+    cash_record.amount, 
+    cash_record.memo, 
+    cash_record.created_at, 
+    cash_record.updated_at 
+FROM cash_record 
+    INNER JOIN sub_category ON cash_record.category=sub_category.id 
+    INNER JOIN main_category ON sub_category.super_category=main_category.id";
+
+    fn sql_select(where_sql: Option<String>, order_sql: Option<String>) -> String {
+        format!(
+            "{}{}{}", 
+            Self::SELECT_SQL_BASE, 
+            match where_sql {
+                Some(v) => format!(" WHERE {}", v),
+                None => String::new()
+            },
+            match order_sql {
+                Some(v) => format!(" ORDER BY {}", v),
+                None => String::new()
+            }
+        )
+    }
+
+    fn sql_between_month(date: NaiveDate) -> ThisResult<String> {
+        // first day of the month
+        let first_day_in_month: NaiveDate = NaiveDate::from_ymd_opt(date.year(), date.month(), 1)
+            .ok_or_else(|| {
+            err_with_msg!(
+                ErrorKinds::DeveloperError,
+                "Failed to get first day in the month.",
+                "予期せぬエラーが発生しました。(E001)"
+            )
+        })?;
+        // last day of the month
+        let last_day_in_month: NaiveDate = {
+            let (next_y, next_m): (i32, u32) = if date.month() == 12 {
+                (date.year() + 1, date.month())
+            } else {
+                (date.year(), date.month() + 1)
+            };
+            NaiveDate::from_ymd_opt(next_y, next_m, 1)
+                .map(|v| v.pred_opt())
+                .flatten()
+                .ok_or_else(|| {
+                    err_with_msg!(
+                        ErrorKinds::DeveloperError,
+                        "Failed to get last day in the month.",
+                        "予期せぬエラーが発生しました。(E001)"
+                    )
+                })?
+        };
+
+        Ok(format!(
+            "cash_record.record_date BETWEEN \"{}\" AND \"{}\"",
+            first_day_in_month,
+            last_day_in_month
+        ))
+    }
 
     /// Select all records.
     pub async fn select_all(pool: &Pool<MySql>) -> ThisResult<Vec<CashIORecord>> {
-        sqlx::query_as::<_, CashIORecord>(format!(r#"{};"#, CashIORecord::SELECT_SQL).as_str())
+        sqlx::query_as::<_, CashIORecord>(CashIORecord::sql_select(
+            None, 
+            None)
+        .as_str())
             .fetch_all(pool)
             .await
             .map_err(|e| {
@@ -74,14 +128,10 @@ impl CashIORecord {
     pub async fn select_by_id(pool: &Pool<MySql>, id: usize) -> ThisResult<Option<CashIORecord>> {
         use sqlx::Error as SqlxError;
 
-        sqlx::query_as::<_, CashIORecord>(
-            format!(
-                r#"{} WHERE cash_record.id={};"#,
-                CashIORecord::SELECT_SQL,
-                id
-            )
-            .as_str(),
-        )
+        sqlx::query_as::<_, CashIORecord>(CashIORecord::sql_select(
+            Some(format!("cash_record.id={}", id)), 
+            None
+        ).as_str())
         .fetch_one(pool)
         .await
         .map_or_else(
@@ -103,41 +153,10 @@ impl CashIORecord {
         pool: &Pool<MySql>,
         date: NaiveDate,
     ) -> ThisResult<Vec<CashIORecord>> {
-        // first day of the month
-        let first_day_in_month: NaiveDate = NaiveDate::from_ymd_opt(date.year(), date.month(), 1)
-            .ok_or_else(|| {
-            err_with_msg!(
-                ErrorKinds::DeveloperError,
-                "Failed to get first day in the month.",
-                "予期せぬエラーが発生しました。(E001)"
-            )
-        })?;
-        // last day of the month
-        let last_day_in_month: NaiveDate = {
-            let (next_y, next_m): (i32, u32) = if date.month() == 12 {
-                (date.year() + 1, date.month())
-            } else {
-                (date.year(), date.month() + 1)
-            };
-            NaiveDate::from_ymd_opt(next_y, next_m, 1)
-                .map(|v| v.pred_opt())
-                .flatten()
-                .ok_or_else(|| {
-                    err_with_msg!(
-                        ErrorKinds::DeveloperError,
-                        "Failed to get last day in the month.",
-                        "予期せぬエラーが発生しました。(E001)"
-                    )
-                })?
-        };
-        sqlx::query_as::<_, CashIORecord>(
-            format!(
-                r#"{} WHERE cash_record.record_date BETWEEN "{}" AND "{}" ORDER BY cash_record.record_date;"#, 
-                CashIORecord::SELECT_SQL, 
-                first_day_in_month, 
-                last_day_in_month
-            ).as_str()
-        )
+        sqlx::query_as::<_, CashIORecord>(&CashIORecord::sql_select(
+            Some(CashIORecord::sql_between_month(date)?), 
+            Some("cash_record.record_date".to_string())
+        ).as_str())
             .fetch_all(pool)
             .await
             .map_err(|e| err_with_msg!(
@@ -153,96 +172,120 @@ impl CashIORecord {
         pool: &Pool<MySql>,
         option: CashIORecordOption,
     ) -> ThisResult<Vec<CashIORecord>> {
-        sqlx::query_as::<_, CashIORecord>(
-            format!(
-                r#"{}{}{}{}{}{}{}{}{};"#,
-                CashIORecord::SELECT_SQL,
-                if option.is_all_none() { " WHERE" } else { "" },
-                option
-                    .id
-                    .map_or_else(|| String::new(), |v| format!(r#" cash_record.id={}"#, v)),
-                option.date.map_or_else(
-                    || String::new(),
-                    |v| format!(r#" cash_record.date="{}""#, v)
-                ),
-                option.main_category.map_or_else(
-                    || String::new(),
-                    |v| format!(r#" cash_record.main_category_name="{}""#, v)
-                ),
-                option.sub_category.map_or_else(
-                    || String::new(),
-                    |v| format!(r#" cash_record.sub_category_name="{}""#, v)
-                ),
-                option.title.map_or_else(
-                    || String::new(),
-                    |v| format!(r#" cash_record.title="{}""#, v)
-                ),
-                option.amount.map_or_else(
-                    || String::new(),
-                    |v| format!(r#" cash_record.amount={}"#, v)
-                ),
-                option.memo.map_or_else(
-                    || String::new(),
-                    |v| format!(r#" cash_record.memo="{}""#, v)
-                ),
+        sqlx::query_as::<_, CashIORecord>(CashIORecord::sql_select(
+            if option.is_all_none() { 
+                None 
+            } else {
+                Some([
+                    ("id", option.id.map(|v| v.to_string())),
+                    ("date", option.date.map(|v| v.to_string())),
+                    ("main_category_name", option.main_category.map(|v| v.to_string())),
+                    ("sub_category_name", option.sub_category.map(|v| v.to_string())),
+                    ("title", option.title.map(|v| v.to_string())),
+                    ("amount", option.amount.map(|v| v.to_string())),
+                    ("memo", option.memo.map(|v| v.to_string())),
+                ]
+                    .map(|(key, v)| v.map_or_else(
+                        || String::new(),
+                        |v| format!(r#" cash_record.{}="{}""#, key, v)
+                    ))
+                    .join(" ")
             )
-            .as_str(),
-        )
-        .fetch_all(pool)
-        .await
-        .map_err(|e| {
-            err_with_msg!(
-                ErrorKinds::DataBaseError,
-                "Failed to get CashIORecord from database.",
-                "データの取得に失敗しました。",
-                e
-            )
-        })
+        },
+            None
+        ).as_str())
+            .fetch_all(pool)
+            .await
+            .map_err(|e| {
+                err_with_msg!(
+                    ErrorKinds::DataBaseError,
+                    "Failed to get CashIORecord from database.",
+                    "データの取得に失敗しました。",
+                    e
+                )
+            })
     }
 
     pub async fn sum_by_month(
         pool: &Pool<MySql>,
         date: NaiveDate,
     ) -> ThisResult<isize> {
-        // first day of the month
-        let first_day_in_month: NaiveDate = NaiveDate::from_ymd_opt(date.year(), date.month(), 1)
-            .ok_or_else(|| {
-            err_with_msg!(
-                ErrorKinds::DeveloperError,
-                "Failed to get first day in the month.",
-                "予期せぬエラーが発生しました。(E001)"
-            )
-        })?;
-        // last day of the month
-        let last_day_in_month: NaiveDate = {
-            let (next_y, next_m): (i32, u32) = if date.month() == 12 {
-                (date.year() + 1, date.month())
-            } else {
-                (date.year(), date.month() + 1)
-            };
-            NaiveDate::from_ymd_opt(next_y, next_m, 1)
-                .map(|v| v.pred_opt())
-                .flatten()
-                .ok_or_else(|| {
-                    err_with_msg!(
-                        ErrorKinds::DeveloperError,
-                        "Failed to get last day in the month.",
-                        "予期せぬエラーが発生しました。(E001)"
-                    )
-                })?
-        };
-        sqlx::query_scalar::<_, Option<Decimal>>(
-            format!(
-                r#"SELECT sum(amount) FROM cash_record WHERE record_date BETWEEN "{}" AND "{}";"#, 
-                first_day_in_month, 
-                last_day_in_month
-            ).as_str()
-        )
+        sqlx::query_scalar::<_, Option<Decimal>>(format!(
+                r#"SELECT sum(amount) FROM cash_record WHERE {};"#, 
+                CashIORecord::sql_between_month(date)?
+        ).as_str())
             .fetch_one(pool)
             .await
             .map(|v| 
                 v.map(|v| <Decimal as TryInto<isize>>::try_into(v).ok()).flatten().unwrap_or_default()
             )
+            .map_err(|e| err_with_msg!(
+                ErrorKinds::DataBaseError, 
+                "Failed to get CashIORecords from the database.", 
+                "データの取得に失敗しました。", 
+                e
+            ))
+    }
+
+    pub async fn sum_by_month_group_by_main_category(
+        pool: &Pool<MySql>,
+        date: NaiveDate
+    ) -> ThisResult<Vec<(String, isize)>> {
+        struct SumGroupByMainCategory {
+            #[allow(dead_code)]
+            id: usize,
+            category_name: String,
+            sum: isize
+        }
+        impl<'r, R> FromRow<'r, R> for SumGroupByMainCategory
+        where
+            R: Row,
+            &'r str: sqlx::ColumnIndex<R>,
+            i32: sqlx::Type<R::Database> + sqlx::Decode<'r, R::Database>,
+            Decimal: sqlx::Type<R::Database> + sqlx::Decode<'r, R::Database>,
+            NaiveDate: sqlx::Type<R::Database> + sqlx::Decode<'r, R::Database>,
+            String: sqlx::Type<R::Database> + sqlx::Decode<'r, R::Database>,
+            Option<String>: sqlx::Type<R::Database> + sqlx::Decode<'r, R::Database>,
+            NaiveDateTime: sqlx::Type<R::Database> + sqlx::Decode<'r, R::Database>,
+        {
+            fn from_row(row: &'r R) -> Result<Self, sqlx::Error> {
+                let id: usize = <usize as TryFrom<i32>>::try_from(row.try_get::<'_, i32, _>("id")?)
+                    .map_err(|e| sqlx::Error::Decode(Box::new(e)))?;
+                let category_name: String = row.try_get::<'_, String, _>("main_category_name")?;
+                let sum: isize = <isize as TryFrom<Decimal>>::try_from({
+                    let a: Decimal = row.try_get("sum")?;
+                    a
+                })
+                    .map_err(|e| sqlx::Error::Decode(Box::new(e)))?;
+                Ok(SumGroupByMainCategory { 
+                    id,
+                    category_name,
+                    sum
+                })
+            }
+        }
+        
+        sqlx::query_as::<_, SumGroupByMainCategory>(
+            format!(
+                "SELECT 
+    main_category.id AS id, 
+    main_category.name AS main_category_name, 
+    sum(cash_record.amount) AS sum
+FROM 
+    cash_record 
+    INNER JOIN sub_category ON cash_record.category = sub_category.id 
+    INNER JOIN main_category ON sub_category.super_category = main_category.id 
+WHERE {} 
+GROUP BY main_category.id 
+ORDER BY main_category.id;",
+            CashIORecord::sql_between_month(date)?
+        ).as_str())
+            .fetch_all(pool)
+            .await
+            .map(|v| v
+                .into_iter()
+                .map(|v| (v.category_name, v.sum))
+                .collect::<Vec<(String, isize)>>())
             .map_err(|e| err_with_msg!(
                 ErrorKinds::DataBaseError, 
                 "Failed to get CashIORecords from the database.", 

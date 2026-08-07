@@ -145,6 +145,14 @@ export class CashIORecord {
     }
   }
 
+  static async sumByMonthGroupByMainCategory(year: number, month: number): Promise<[string, number][]> {
+    if (month === null) {
+      return [];
+    } else {
+      return await invoke<[string, number][]>("get_sum_by_month_group_by_main_category", {year: year, month: month});
+    }
+  }
+
   static async deleteById(id: number) {
     await invoke<void>("delete_record_by_id", {id: id});
   }

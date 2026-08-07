@@ -12,6 +12,8 @@ export type TableFunctions = {
   getCheckedId: (() => number[]) | undefined, 
 }
 
+export type OnTermChanged = (year: SelectYear, month: SelectMonth) => Promise<void>;
+
 // TermSelect.tsxが提供する関数群
 export type TermSelectFunctions = {
   reload: (() => void) | undefined

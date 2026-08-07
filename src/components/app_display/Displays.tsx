@@ -3,6 +3,7 @@ import Edit from "../edit/Edit";
 import Setting from "../setting/Setting";
 import { DisplayHandler, SpecialFunctions } from "../../logic";
 import { displayNames, DisplayName } from "./logic";
+import Main from "../main/Main";
 
 // タブによって切り替え可能なdisplay群
 function Displays(props: {
@@ -22,7 +23,7 @@ function Displays(props: {
           >
             {
               value === "main"
-              ? "メイン"
+              ? <Main />
               : value === "data"
               ? <Data displayHandler={props.displayHandlers["data"]} specialFunctions={props.specialFunctions}/>
               : value === "edit"

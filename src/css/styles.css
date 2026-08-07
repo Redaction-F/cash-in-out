@@ -5,13 +5,14 @@
 
 /* === For All === */
 :root {
-  --color-background: #efefef;
+  --color-background-1: #efefef;
+  --color-background-2: #e7e7e7;
   --color-content-1: #dfdfdf;
   --color-content-2: #cfcfcf;
   --color-content-3: #bfbfbf;
   --color-text: #2f2f2f;
   /* 背景色 */
-  background-color: var(--color-background);
+  background-color: var(--color-background-1);
   /* スクロール不可 */
   overflow: hidden;
 }
@@ -124,7 +125,8 @@ button:disabled {
 /* ダークモード */
 @media (prefers-color-scheme: dark) {
   :root {
-    --color-background: #1f1f1f;
+    --color-background-1: #1f1f1f;
+    --color-background-2: #272727;
     --color-content-1: #2f2f2f;
     --color-content-2: #3f3f3f;
     --color-content-3: #4f4f4f;

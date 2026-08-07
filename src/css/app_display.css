@@ -32,6 +32,14 @@
 /* === For AppDisplay.tsx === */
 /* 各画面のラッパー */
 .displays {
+  /* 背景の色 */
+  background-color: var(--color-background-2);
+  /* 枠線 */
+  border: 2px solid;
+  /* 枠線下 */
+  border-bottom: none;
+  /* 枠線の色 */
+  border-color: var(--color-text);
   /* 高さ */
   /* container.padding-top + height + tab_wrapper.height + container.padding-buttom = container.height */
   height: 80vh;
@@ -122,7 +130,7 @@
 /* タブ選択時のタブラベル */
 .tabbar-tab-button:checked + .tabbar-tab-label {
   /* 背景色 */
-  background-color: var(--color-background);
+  background-color: var(--color-background-2);
 }
 
 /* タブ選択時のタブ */
@@ -134,7 +142,7 @@
 /* タブ選択時のタブ上の装飾 */
 .tabbar-tab.tabbar-tab:has(.tabbar-tab-button:checked)::before {
   /* 背景色 */
-  background-color: var(--color-background);
+  background-color: var(--color-background-2);
   /* 枠(左) */
   border-left: 2px solid;
   /* 枠(左)の色 */
@@ -191,7 +199,7 @@
   /* 子要素を中央揃えに配置(display: flex) */
   align-items: center;
   /* 背景色 */
-  background-color: var(--color-background);
+  background-color: var(--color-background-1);
   /* heightにborder,paddingを含める */
   box-sizing: border-box;
   /* 子要素を横並びに配置(今回はalign-itemsとjustify-contentを適用するために使用) */
@@ -220,7 +228,7 @@
   /* 円回転部分 */
   border: 5px solid var(--color-text);
   /* 円あまり部分 */
-  border-left-color: var(--color-background); 
+  border-left-color: var(--color-background-1); 
   /* 高さ */
   height: 30px;
   /* 透明度(親のプロパティの打ち消し) */
