@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { selectMonth, SelectMonth, SelectYear, TermSelectRef } from "../data/logic";
 import TermSelect from "../data/TermSelect";
 import PieChart from "./PieChart";
@@ -35,7 +35,7 @@ function Main(props: {
   const termSelectFunctions = useRef<TermSelectRef>(null);
 
   props.displayHandler.onOpen = reload;
-  
+
   return (
     <div>
       <TermSelect onTermChanged={setDatasFromDB} ref={termSelectFunctions}/>
