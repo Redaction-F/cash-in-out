@@ -1,16 +1,14 @@
+// グラフの要素となるデータの型
 export type Data = {
   category: string,
   color: string,
   amount: number
 };
 
-export type GraphInfo = {
-  start: number,
-  end: number,
-  overHalf: boolean
-};
-
+// グラフの描画に必要な情報の型
 export type GraphData = {
-  data: Data,
-  info: GraphInfo
-}
+  category: string,
+  color: string,
+  amount: number,
+  partialSum: number
+};

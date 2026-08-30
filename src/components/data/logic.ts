@@ -1,66 +1,76 @@
 import { CashIORecord } from "../../logic";
 
-// Data.tsxが提供する関数群
-export type dataFunctions = {
-  reload: (() => Promise<void>) | undefined
-}
+// OptionButtons.tsxが提供する関数群
+export type OptionButtonsRef = {
+  onUpdateCheckBoxes: (checkCount: number) => void
+};
 
-// Table.tsxが提供する関数群
-export type TableFunctions = {
-  set: ((value: CashIORecord[], sum: number) => void) | undefined, 
-  setByMonth: ((year: SelectYear, month: SelectMonth) => Promise<void>) | undefined, 
-  getCheckedId: (() => number[]) | undefined, 
-}
-
+// 期間を変更したときに実行する関数
 export type OnTermChanged = (year: SelectYear, month: SelectMonth) => Promise<void>;
 
 // TermSelect.tsxが提供する関数群
-export type TermSelectFunctions = {
-  reload: (() => void) | undefined
-}
+export type TermSelectRef = {
+  reload: () => void
+};
 
-// OptionButtons.tsxが提供する関数群
-export type OptionButtonsFunctions = {
-  clearCheckedCount: (() => void) | undefined, 
-  incCheckedCount: (() => void) | undefined, 
-  decCheckedCount: (() => void) | undefined
-}
+export type OnUpdateCheckBoxes = (checkBoxCount: number) => void;
+
+// Table.tsxが提供する関数群
+export type TableRef = {
+  set: (value: CashIORecord[], sum: number) => void, 
+  setByMonth: (year: SelectYear, month: SelectMonth) => Promise<void>, 
+  getCheckedIds: () => number[], 
+};
 
 // 表の各行のチェック状態を管理
 type CheckedState = {
   id: number, 
   isChecked: boolean
-}
+};
 
 // 表のチェック状態を管理
 export class CheckedStates {
   private _value: CheckedState[];
+  private _checkedCount: number;
 
   constructor() {
     this._value = [];
+    this._checkedCount = 0;
   }
 
-  init(tableRows: CashIORecord[], optionButtonsFunctions: OptionButtonsFunctions) {
+  init(tableRows: CashIORecord[], onUpdateCheckBoxes: OnUpdateCheckBoxes | undefined) {
     this._value = tableRows.map((v) => ({
       id: v.id, 
       isChecked: false
     }));
-    optionButtonsFunctions.clearCheckedCount!();
+    this._checkedCount = 0;
+    if (onUpdateCheckBoxes === undefined) {
+      return;
+    }
+    onUpdateCheckBoxes(0);
   }
 
-  update(index: number, isChecked: boolean, optionButtonsFunctions: OptionButtonsFunctions) {
+  update(index: number, isChecked: boolean, onUpdateCheckBoxes: OnUpdateCheckBoxes | undefined) {
     // チェックが外されたとき
     if (this._value[index].isChecked && !isChecked) {
       this._value[index].isChecked = false;
-      optionButtonsFunctions.decCheckedCount!();
+      this._checkedCount -= 1;
+      if (onUpdateCheckBoxes === undefined) {
+        return;
+      }
+      onUpdateCheckBoxes(this._checkedCount);
     // チェックされたとき
     } else if (!this._value[index].isChecked && isChecked) {
       this._value[index].isChecked = true;
-      optionButtonsFunctions.incCheckedCount!();
+      this._checkedCount += 1;
+      if (onUpdateCheckBoxes === undefined) {
+        return;
+      }
+      onUpdateCheckBoxes(this._checkedCount);
     };
   }
 
-  getCheckedId(): number[] {
+  getCheckedIds(): number[] {
     return this._value.filter((v) => v.isChecked).map(v => v.id);
   }
 }

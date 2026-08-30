@@ -1,13 +1,16 @@
-import { useState } from "react";
-import { SelectMonth, SelectYear, TermSelectFunctions } from "../data/logic";
+import { useRef, useState } from "react";
+import { selectMonth, SelectMonth, SelectYear, TermSelectRef } from "../data/logic";
 import TermSelect from "../data/TermSelect";
-import Graph from "./Graph";
+import PieChart from "./PieChart";
 import { Data } from "./logic";
-import { CashIORecord } from "../../logic";
+import { CashIORecord, DisplayHandler } from "../../logic";
 
-function Main() {
-  const [datas, setDatas] = useState<Data[]>([]);
-
+// main display
+// グラフの表示など
+function Main(props: {
+  displayHandler: DisplayHandler
+}) {
+  // 指定された月のメインカテゴリごとの金額の総和を取得
   const getSumByMonthGroupByMainCategory = async (year: SelectYear, month: SelectMonth): Promise<Data[]> => {
     if (month === null) {
       return [];
@@ -18,18 +21,25 @@ function Main() {
       color: `#${(Math.floor(Math.random() * 256 * 256 * 256)).toString(16)}`,
       amount: v[1]
     }));
-  }
-
-  const termSelectFunctions: TermSelectFunctions = {
-    reload: undefined
   };
+  const setDatasFromDB = async (year: SelectYear, month: SelectMonth) => {
+    setDatas(await getSumByMonthGroupByMainCategory(year, month));
+  };
+  const reload = async () => {
+    const today: Date = new Date();
+    await setDatasFromDB(new SelectYear(today.getFullYear()), selectMonth(today.getMonth() + 1));
+  };
+
+  // 円グラフに表示するデータ
+  const [datas, setDatas] = useState<Data[]>([]);
+  const termSelectFunctions = useRef<TermSelectRef>(null);
+
+  props.displayHandler.onOpen = reload;
 
   return (
     <div>
-      <TermSelect onTermChanged={async (year, month) => {
-        setDatas(await getSumByMonthGroupByMainCategory(year, month));
-      }} termSelectFunctions={termSelectFunctions}/>
-      <Graph datas={datas}/>
+      <TermSelect onTermChanged={setDatasFromDB} ref={termSelectFunctions}/>
+      <PieChart datas={datas}/>
     </div>
   );
 }

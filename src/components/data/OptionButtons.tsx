@@ -1,66 +1,64 @@
-import { useState } from "react";
-import { CashIORecord, SpecialFunctions } from "../../logic";
-import { dataFunctions, OptionButtonsFunctions, TableFunctions } from "./logic";
+import { forwardRef, useImperativeHandle, useState } from "react";
+import { CashIORecord, Global } from "../../logic";
+import { OptionButtonsRef } from "./logic";
 
 // ボタン等
-function OptionButtons(props: {
-  dataFunctions: dataFunctions, 
-  tableFunctions: TableFunctions, 
-  optionButtonsFunctions: OptionButtonsFunctions, 
-  specialFunctions: SpecialFunctions
-}) {
+const OptionButtons = forwardRef((props: {
+  reload: () => Promise<void>, 
+  getCheckedIds: (() => number[] | undefined)
+  global: Global
+}, ref: React.ForwardedRef<OptionButtonsRef>) => {
   // 編集タブに遷移し、編集開始
-  async function editWrap() {
-    if (await props.specialFunctions.changeDisplay!("edit")) {
-      let checkedId: number[] = props.tableFunctions.getCheckedId!();
-      await props.specialFunctions.startEdit!(checkedId.length === 0 ? null : checkedId[0]);
+  const excuteEdit = async () => {
+    if (await props.global.changeDisplay!("edit")) {
+      const checkedId: number[] = props.getCheckedIds() ?? [];
+      await props.global.startEdit!(checkedId.length === 0 ? null : checkedId[0]);
     };
-  }
+  };
   // 編集タブに遷移し、新規作成開始
-  async function createWrap() {
-    if (await props.specialFunctions.changeDisplay!("edit")) {
-      props.specialFunctions.startCreate!();
+  const excuteCreate = async () => {
+    if (await props.global.changeDisplay!("edit")) {
+      props.global.startCreate!();
     };
   }
   // データを削除
-  async function deleteWrap() {
+  const excuteDelete = async () => {
     if (!await confirm("削除しますか？")) {
       return;
     }
-    let checkedId: number[] = props.tableFunctions.getCheckedId!();
-    let errors: string[] = [];
-    let isErrorOccured: boolean = false;
-    for (let v of checkedId) {
+    const checkedId: number[] = props.getCheckedIds() ?? [];
+    const errors: string[] = [];
+    for (const v of checkedId) {
+      console.log(`${v}`);
       await CashIORecord.deleteById(v).then(() => {}, (e) => {
-        isErrorOccured = true;
         errors.push(String(e));
-      })
+      });
     }
-    if (isErrorOccured) {
+    if (errors.length === 0) {
+      alert("データを削除しました。");
+    } else {
       console.log(errors.join("\n"));
       alert("エラーが発生しました。エラーメッセージは以下の通りです。 \n" + errors.join("\n"));
-    } else {
-      alert("データを削除しました。")
     }
-    props.dataFunctions.reload!();
+    await props.reload();
   }
 
   // 表でチェックされている行の数
   // useState: ボタンのdisabledの切り替え
   const [checkedCount, setCheckedCount] = useState<number>(0);
 
-  // optionButtonsFucntionsの初期化
-  props.optionButtonsFunctions.clearCheckedCount = () => setCheckedCount(0);
-  props.optionButtonsFunctions.incCheckedCount = () => setCheckedCount((prev) => prev + 1);
-  props.optionButtonsFunctions.decCheckedCount = () => setCheckedCount((prev) => prev - 1);
+  // optionButtonsRefの初期化
+  useImperativeHandle(ref, () => ({
+    onUpdateCheckBoxes: (checkedCount: number) => setCheckedCount(checkedCount)
+  }));
 
   return(
     <div className="option-buttons">
-      <button type="button" className="option-button" onClick={createWrap} disabled={checkedCount !== 0}>新規</button>
-      <button type="button" className="option-button" onClick={editWrap} disabled={checkedCount !== 1}>編集</button>
-      <button type="button" className="option-button" onClick={deleteWrap} disabled={checkedCount === 0}>削除</button>
+      <button type="button" className="option-button" onClick={excuteCreate} disabled={checkedCount !== 0}>新規</button>
+      <button type="button" className="option-button" onClick={excuteEdit} disabled={checkedCount !== 1}>編集</button>
+      <button type="button" className="option-button" onClick={excuteDelete} disabled={checkedCount === 0}>削除</button>
     </div>
   )
-}
+})
 
 export default OptionButtons;
