@@ -6,6 +6,7 @@ import "./css/app_display.css";
 import "./css/data.css";
 import "./css/edit.css";
 import "./css/setting.css"
+import "./css/main.css"
 
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
   <React.StrictMode>

@@ -6,13 +6,13 @@ import { invoke } from "@tauri-apps/api/core";
 // 具体的な機能はrustで書く
 
 // 全体共有用の関数群
-export type SpecialFunctions = {
+export type Global = {
   // display切り替え
   changeDisplay: ((displayName: DisplayName) => Promise<boolean>) | undefined, 
   // edit displayで編集を開始
   startEdit: ((id: number | null) => Promise<void>) | undefined, 
   startCreate: (() => void) | undefined
-}
+};
 
 // displayの操作用
 export type DisplayHandler = {
@@ -25,9 +25,9 @@ export type DisplayHandler = {
   onClose: () => Promise<boolean>, 
   // このdisplayに遷移にするときの処理
   onOpen: () => Promise<void>
-}
+};
 
-// 出入金1単位の項目
+// // 出入金1単位の項目
 export const cashIORecordFields = ["id", "date", "mainCategory", "subCategory", "title", "amount", "memo"] as const;
 export type CashIORecordField = typeof cashIORecordFields[number];
 const cashIORecordFieldSet: Set<string> = new Set(cashIORecordFields);
@@ -119,30 +119,26 @@ export class CashIORecord {
 
   // 今月のデータを取得
   static async getInThisMonth(): Promise<CashIORecord[]> {
-    let today: Date = new Date();
+    const today: Date = new Date();
     return await invoke<CashIORecord[]>("get_records_by_month", {year: today.getFullYear(), month: today.getMonth() + 1});
   }
  
   // データを取得
   static async getByMonth(year: number, month: number): Promise<CashIORecord[]> {
-    if (month === null) {
-      return [];
-    } else {
-      return await invoke<CashIORecord[]>("get_records_by_month", {year: year, month: month});
-    }
+    return await invoke<CashIORecord[]>("get_records_by_month", {year: year, month: month});
   }
 
   static async sumInThisMonth(): Promise<number> {
-    let today: Date = new Date();
+    const today: Date = new Date();
     return await invoke<number>("get_sum_by_month", {year: today.getFullYear(), month: today.getMonth() + 1});
   }
 
   static async sumByMonth(year: number, month: number): Promise<number> {
-    if (month === null) {
-      return 0;
-    } else {
-      return await invoke<number>("get_sum_by_month", {year: year, month: month});
-    }
+    return await invoke<number>("get_sum_by_month", {year: year, month: month});
+  }
+
+  static async sumByMonthGroupByMainCategory(year: number, month: number): Promise<[string, number][]> {
+    return await invoke<[string, number][]>("get_sum_by_month_group_by_main_category", {year: year, month: month});
   }
 
   static async deleteById(id: number) {
@@ -322,4 +318,4 @@ export class SCategory {
 type MainCategoryWithSubs = {
   name: string, 
   subs: string[]
-}
+};

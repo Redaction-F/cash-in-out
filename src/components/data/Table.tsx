@@ -1,20 +1,19 @@
-import { useEffect, useRef, useState } from "react";
+import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
 import { CashIORecord } from "../../logic";
-import { CheckedStates, OptionButtonsFunctions, SelectMonth, SelectYear, TableFunctions } from "./logic";
+import { CheckedStates, OnUpdateCheckBoxes, SelectMonth, SelectYear } from "./logic";
 
 // data displayの出入金データ表
-function Table(props: {
-  tableFunctions: TableFunctions, 
-  optionButtonsFunctions: OptionButtonsFunctions
-}) {
+const Table = forwardRef((props: {
+  onUpdateCheckBoxes: OnUpdateCheckBoxes | undefined
+}, ref) => {
   // 表の更新
-  function set(newTableRows: CashIORecord[], sum: number) {
+  const set = (newTableRows: CashIORecord[], sum: number) => {
     table.current = newTableRows;
     tableSum.current = sum;
     setRenderTable((prev) => 1 - prev);
-  }
+  };
   // 月を指定してデータベースからデータを読み込む
-  async function setByMonth(year: SelectYear, month: SelectMonth) {
+  const setByMonth = async (year: SelectYear, month: SelectMonth) => {
     if (month === null) {
       return;
     }
@@ -22,11 +21,11 @@ function Table(props: {
       await CashIORecord.getByMonth(year.value, month),
       await CashIORecord.sumByMonth(year.value, month)
     );
-  }
+  };
   // 各行のチェックボックスのonChangeでeventからとれるようにラップ
-  function updateCheckedRowWrap(index: number, event: React.ChangeEvent<HTMLInputElement>) {
-    checkedStates.current.update(index, event.target.checked, props.optionButtonsFunctions)
-  }
+  const updateCheckedRow = (index: number, event: React.ChangeEvent<HTMLInputElement>) => {
+    checkedStates.current.update(index, event.target.checked, props.onUpdateCheckBoxes!)
+  };
 
   // 出入金データ全体
   const table = useRef<CashIORecord[]>([]);
@@ -37,13 +36,15 @@ function Table(props: {
   // useState: Table.tsxの表の再レンダリング
   const [renderTable, setRenderTable] = useState<number>(0);
 
-  // tableFunctionsの初期化
-  props.tableFunctions.set = set;
-  props.tableFunctions.setByMonth = setByMonth;
-  props.tableFunctions.getCheckedId = () => checkedStates.current.getCheckedId();
+  // tableRefの初期化
+  useImperativeHandle(ref, () => ({
+    set: set,
+    setByMonth: setByMonth,
+    getCheckedIds: () => (checkedStates.current.getCheckedIds()),
+  }));
   // tableRowsの更新時に実行
   useEffect(() => {
-    checkedStates.current.init(table.current, props.optionButtonsFunctions);
+    checkedStates.current.init(table.current, props.onUpdateCheckBoxes!);
   }, [renderTable])
 
   return(
@@ -84,7 +85,7 @@ function Table(props: {
               // 一行
               <tr key={tableRow.id}>
                 <th scope="row">
-                  <input type="checkbox" id={String(tableRow.id)} name="row" onChange={updateCheckedRowWrap.bind(window, index)}/>
+                  <input type="checkbox" id={String(tableRow.id)} name="row" onChange={updateCheckedRow.bind(window, index)}/>
                 </th>
                 <th>
                   {tableRow.id}
@@ -124,6 +125,6 @@ function Table(props: {
       </table>
     </div>
   );
-}
+})
 
 export default Table

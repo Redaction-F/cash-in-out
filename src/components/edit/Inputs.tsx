@@ -1,16 +1,15 @@
-import { RefObject, useEffect, useRef, useState } from "react";
+import { forwardRef, RefObject, useEffect, useImperativeHandle, useRef, useState } from "react";
 import MCategorySelect from "../setting/MCategorySelect";
 import SCategorySelect from "../setting/SCategorySelect";
 import { CashIORecord, CashIORecordField, cashIORecordFields, SCategory } from "../../logic";
 import { MCategorySelectFunctions, SCategorySelectFunctions } from "../setting/logic";
-import { EditFunctions, InputsFunctions, ModeOfEdit } from "./logic";
+import { InputsRef, ModeOfEdit } from "./logic";
 
 // 入力フォーム群
-function Inputs(props: {
+const Inputs = forwardRef((props: {
   mode: ModeOfEdit, 
-  editFunctions: EditFunctions, 
-  inputsFunctions: InputsFunctions
-}) {
+  startEditById: () => void
+}, ref: React.ForwardedRef<InputsRef>) => {
   // valueの内容に入力フォームを初期化
   function setInput(value: CashIORecord) {
     inputDefaultValues["id"].current = String(value.id);
@@ -87,28 +86,30 @@ function Inputs(props: {
   const firstRender = useRef<boolean>(true);
 
   // inputGetterSetterの設定
-  props.inputsFunctions.set = setInput;
-  props.inputsFunctions.setEmpty = setInputEmpty;
-  props.inputsFunctions.getId = getInputedId;
-  props.inputsFunctions.get = getInput;
-  props.inputsFunctions.reload = () => mainCategorySelectorFunctions.reload!();
+  useImperativeHandle(ref, () => ({
+    set: setInput,
+    setEmpty: setInputEmpty,
+    getId: getInputedId,
+    get: getInput,
+    reload: () => mainCategorySelectorFunctions.reload!(),
+  }));
   // enterキーにバインド
   useEffect(() => {
     if (firstRender.current) {
       inputs["id"].current?.addEventListener("keydown", (e) => {
         if (!e.isComposing && e.key === "Enter") {
-          props.editFunctions.startEditFromId!();
+          props.startEditById();
         }
       })
       firstRender.current = false;
     }
-  }, [])
+  }, []);
   // select要素のために必ず二回レンダリング
   useEffect(() => {
     if (renderInput === 1) {
       setRenderInput(0);
     }
-  }, [renderInput])
+  }, [renderInput]);
 
   return (
     <div className="inputs-wrapper" key={renderInput}>
@@ -148,14 +149,14 @@ function Inputs(props: {
                 ref={inputs[value]} 
                 // valueが"id"のとき、props.mode === "selectMode"ならfalse、そうでないならtrue
                 // valueが"id"でないとき、props.mode === "selectMode"ならtrue、そうでないならfalse
-                disabled={value === "id" ? props.mode !== "selectMode" : props.mode === "selectMode"} 
+                disabled={value === "id" ? props.mode !== "select" : props.mode === "select"} 
               />
               : value === "mainCategory" 
               ? <MCategorySelect 
                 mCategoryFunctions={mainCategorySelectorFunctions} 
                 sCategoryFunctions={subCategorySelectorFunctions} 
                 additionalOption={[]} 
-                disabled={props.mode === "selectMode"} 
+                disabled={props.mode === "select"} 
                 defaultValue={inputDefaultValues[value].current}
               />
               : value === "subCategory"
@@ -163,7 +164,7 @@ function Inputs(props: {
                 mCategoryFunctions={mainCategorySelectorFunctions} 
                 sCategoryFunctions={subCategorySelectorFunctions} 
                 additionalOption={[]} 
-                disabled={props.mode === "selectMode"} 
+                disabled={props.mode === "select"} 
                 defaultValue={inputDefaultValues[value].current}
               />
               : <textarea 
@@ -171,7 +172,7 @@ function Inputs(props: {
                 className="input-textarea" 
                 defaultValue={inputDefaultValues[value].current} 
                 ref={inputs[value]} 
-                disabled={props.mode === "selectMode"} 
+                disabled={props.mode === "select"} 
               />
             }
           </div>
@@ -179,6 +180,6 @@ function Inputs(props: {
       }
     </div>
   )
-}
+})
 
 export default Inputs;

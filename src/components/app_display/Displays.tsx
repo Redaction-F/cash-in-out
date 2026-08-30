@@ -1,14 +1,22 @@
 import Data from "../data/Data";
 import Edit from "../edit/Edit";
 import Setting from "../setting/Setting";
-import { DisplayHandler, SpecialFunctions } from "../../logic";
+import { DisplayHandler, Global } from "../../logic";
 import { displayNames, DisplayName } from "./logic";
+import Main from "../main/Main";
+import { useEffect } from "react";
 
 // タブによって切り替え可能なdisplay群
 function Displays(props: {
   displayHandlers: {[key in DisplayName]: DisplayHandler}, 
-  specialFunctions: SpecialFunctions
+  global: Global
 }) {
+  const initDisplay: DisplayName = "main";
+
+  useEffect(() => {
+    props.displayHandlers[initDisplay].onOpen();
+  }, []);
+
   return (
     <div className="displays">
       {
@@ -16,17 +24,17 @@ function Displays(props: {
           <div 
             id={"display-" + value} 
             // mainのみ"display display-show"、それ以外は"display"
-            className={"display" + (value === "main" ? " display-show" : "")} 
+            className={"display" + (value === initDisplay ? " display-show" : "")} 
             ref={props.displayHandlers[value].content} 
             key={value}
           >
             {
               value === "main"
-              ? "メイン"
+              ? <Main displayHandler={props.displayHandlers["main"]}/>
               : value === "data"
-              ? <Data displayHandler={props.displayHandlers["data"]} specialFunctions={props.specialFunctions}/>
+              ? <Data displayHandler={props.displayHandlers["data"]} global={props.global}/>
               : value === "edit"
-              ? <Edit displayHandler={props.displayHandlers["edit"]} specialFunctions={props.specialFunctions}/>
+              ? <Edit displayHandler={props.displayHandlers["edit"]} global={props.global}/>
               : <Setting displayHandler={props.displayHandlers["setting"]}/>
             }
           </div>
