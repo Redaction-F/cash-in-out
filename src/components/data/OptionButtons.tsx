@@ -5,30 +5,31 @@ import { OptionButtonsRef } from "./logic";
 // ボタン等
 const OptionButtons = forwardRef((props: {
   reload: () => Promise<void>, 
-  getCheckedIds: (() => number[]) | undefined,
+  getCheckedIds: (() => number[] | undefined)
   global: Global
 }, ref: React.ForwardedRef<OptionButtonsRef>) => {
   // 編集タブに遷移し、編集開始
-  const doEdit = async () => {
+  const excuteEdit = async () => {
     if (await props.global.changeDisplay!("edit")) {
-      const checkedId: number[] = props.getCheckedIds!();
+      const checkedId: number[] = props.getCheckedIds() ?? [];
       await props.global.startEdit!(checkedId.length === 0 ? null : checkedId[0]);
     };
   };
   // 編集タブに遷移し、新規作成開始
-  const doCreate = async () => {
+  const excuteCreate = async () => {
     if (await props.global.changeDisplay!("edit")) {
       props.global.startCreate!();
     };
   }
   // データを削除
-  const doDelete = async () => {
-    if (!confirm("削除しますか？")) {
+  const excuteDelete = async () => {
+    if (!await confirm("削除しますか？")) {
       return;
     }
-    const checkedId: number[] = props.getCheckedIds!();
+    const checkedId: number[] = props.getCheckedIds() ?? [];
     const errors: string[] = [];
     for (const v of checkedId) {
+      console.log(`${v}`);
       await CashIORecord.deleteById(v).then(() => {}, (e) => {
         errors.push(String(e));
       });
@@ -39,7 +40,7 @@ const OptionButtons = forwardRef((props: {
       console.log(errors.join("\n"));
       alert("エラーが発生しました。エラーメッセージは以下の通りです。 \n" + errors.join("\n"));
     }
-    props.reload();
+    await props.reload();
   }
 
   // 表でチェックされている行の数
@@ -53,9 +54,9 @@ const OptionButtons = forwardRef((props: {
 
   return(
     <div className="option-buttons">
-      <button type="button" className="option-button" onClick={doCreate} disabled={checkedCount !== 0}>新規</button>
-      <button type="button" className="option-button" onClick={doEdit} disabled={checkedCount !== 1}>編集</button>
-      <button type="button" className="option-button" onClick={doDelete} disabled={checkedCount === 0}>削除</button>
+      <button type="button" className="option-button" onClick={excuteCreate} disabled={checkedCount !== 0}>新規</button>
+      <button type="button" className="option-button" onClick={excuteEdit} disabled={checkedCount !== 1}>編集</button>
+      <button type="button" className="option-button" onClick={excuteDelete} disabled={checkedCount === 0}>削除</button>
     </div>
   )
 })

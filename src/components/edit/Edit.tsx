@@ -81,7 +81,7 @@ function Edit(props: {
     if (mode === "select") {
       return true;
     }
-    if (confirm("編集を中止しますか？\n編集中のデータは破棄され、このデータは変更されません。")) {
+    if (await confirm("編集を中止しますか？\n編集中のデータは破棄され、このデータは変更されません。")) {
       cancelEdit();
       return true;
     } else {

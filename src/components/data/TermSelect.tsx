@@ -2,7 +2,7 @@ import { forwardRef, useImperativeHandle, useRef, useState } from "react";
 import { OnTermChanged, selectMonth, SelectMonth, SelectYear, TermSelectRef } from "./logic";
 
 const TermSelect = forwardRef((props: {
-  onTermChanged: OnTermChanged | undefined
+  onTermChanged: OnTermChanged
 }, ref: React.ForwardedRef<TermSelectRef>) => {
   // 選択されている年を取得
   const getYear = (): SelectYear => {

@@ -8,12 +8,12 @@ import LoadingDisplay from "./LoadingDisplay";
 // 画面全体
 function AppDisplay() {
   // display切り替え
-  const changeDisplaySimple = (preTab: DisplayName, nextTab: DisplayName) => {
+  const changeDisplaySimple = (presentTab: DisplayName, nextTab: DisplayName) => {
     // tabを切り替える
-    displayHandlers[preTab].tab.current!.checked = false;
+    displayHandlers[presentTab].tab.current!.checked = false;
     displayHandlers[nextTab].tab.current!.checked = true;
     // 表示するdisplayを切り替える
-    displayHandlers[preTab].content.current?.classList.remove("display-show");
+    displayHandlers[presentTab].content.current?.classList.remove("display-show");
     displayHandlers[nextTab].content.current?.classList.add("display-show");
   };
   // display切り替え(処理付き)

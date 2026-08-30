@@ -34,11 +34,11 @@ function Data(props: {
   return (
     <>
       {/* ボタン群 */}
-      <OptionButtons reload={reload} getCheckedIds={tableRef.current?.getCheckedIds} global={props.global} ref={optionButtonsRef}/>
+      <OptionButtons reload={reload} getCheckedIds={() => (tableRef.current?.getCheckedIds())} global={props.global} ref={optionButtonsRef}/>
       {/* 期間選択ドロップダウン */}
-      <TermSelect onTermChanged={tableRef.current?.setByMonth} ref={termSelectRef}/>
+      <TermSelect onTermChanged={async (year, month) => {tableRef.current?.setByMonth(year, month)}} ref={termSelectRef}/>
       {/* 表 */}
-      <Table onUpdateCheckBoxes={optionButtonsRef.current?.onUpdateCheckBoxes} ref={tableRef}/>
+      <Table onUpdateCheckBoxes={(checkedCount) => {optionButtonsRef.current?.onUpdateCheckBoxes(checkedCount)}} ref={tableRef}/>
       {/* 出入力のためのボタン */}
       <IOButtions />
     </>

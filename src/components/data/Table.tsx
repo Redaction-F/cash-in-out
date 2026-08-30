@@ -40,7 +40,7 @@ const Table = forwardRef((props: {
   useImperativeHandle(ref, () => ({
     set: set,
     setByMonth: setByMonth,
-    getCheckedId: () => checkedStates.current.getCheckedIds(),
+    getCheckedIds: () => (checkedStates.current.getCheckedIds()),
   }));
   // tableRowsの更新時に実行
   useEffect(() => {
